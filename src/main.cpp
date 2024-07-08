@@ -128,11 +128,10 @@ int main()
         // render
         // ------
         object.setPosition(position);
+        modelLoadingShader.use();
         modelLoadingShader.setTransform("view", cam.getViewMatrix());
         modelLoadingShader.setVec3("viewPos", cam.position());
         ScreenRenderer.render();
-
-
         // glBindVertexArray(0); // no need to unbind it every time 
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
