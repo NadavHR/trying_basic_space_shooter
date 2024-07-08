@@ -1,4 +1,4 @@
-#include "src/spatial_render_object.hpp"
+#include "spatial_render_object.hpp"
 #include "spatial_render_object.hpp"
 
 const glm::vec4 X_BASE_VECTOR(1.0f, 0.0f, 0.0f, 1.0f);
@@ -25,18 +25,18 @@ void SpatialRenderObject::setRotationRad(const glm::vec3 &mRotationRad_) {
 
 glm::mat4 SpatialRenderObject::getTransformationMatrix()
 {
-    glm::mat4 rotation(1.0f);
+    glm::mat4 rotation(1.0f);  // rotation
 
     rotation = glm::rotate(rotation, mRotationRad.x, glm::vec3(X_BASE_VECTOR));
     rotation = glm::rotate(rotation, mRotationRad.y, glm::vec3(rotation * Y_BASE_VECTOR));
     rotation = glm::rotate(rotation, mRotationRad.z, glm::vec3(rotation * Z_BASE_VECTOR));
 
-    glm::mat4 transformation(1.0f);
+    glm::mat4 scale(1.0f);
 
-    transformation = glm::scale(transformation, mScale);         // scale
-    transformation = rotation * transformation;                  // rotate
-    transformation = glm::translate(transformation, mPosition);  // translate
-    return transformation;
+    scale = glm::scale(scale, mScale);         // scale
+    glm::mat4 translation(1.0f);
+    translation = glm::translate(translation, mPosition);  // translate
+    return translation * rotation * scale;
 }
 
 glm::vec3 SpatialRenderObject::getScale() const {

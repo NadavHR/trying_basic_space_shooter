@@ -10,12 +10,12 @@ class Renderer {
         Renderer(unsigned int screenWidth, unsigned int screenHeight);
         void render(); 
         ~Renderer();
-        void addRenderObject(IRenderObject &object);
+        void addRenderObject(IRenderObject * object);
         unsigned int getTexture() const;
     
     private:
         unsigned int mFrameWidth, mFrameHeight;
-        std::vector<IRenderObject&> mRenderObjects;
+        std::vector<IRenderObject*> mRenderObjects;
         unsigned int mTexture;  // the texture being written to
         unsigned int mFBO;  // Frame Buffer Object
         unsigned int mRBO;  // Rendr Buffer Object

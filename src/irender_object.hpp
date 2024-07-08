@@ -1,4 +1,4 @@
-#include "src\shader.hpp"
+#include "shader.hpp"
 #ifndef IRENDER_OBJECT_HPP
 #define IRENDER_OBJECT_HPP
 

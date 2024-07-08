@@ -1,7 +1,7 @@
 
 #ifndef SPATIAL_RENDER_OBJECT_HPP
 #define SPATIAL_RENDER_OBJECT_HPP
-#include "src\irender_object.hpp"
+#include "irender_object.hpp"
 class SpatialRenderObject : public IRenderObject {
     public:
         glm::vec3 getPosition() const;

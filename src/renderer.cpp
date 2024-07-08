@@ -1,36 +1,11 @@
 #include "renderer.hpp"
 
-//-----------------------------------------------------------------
-// These are for displaying the rendered object on screen
-//-----------------------------------------------------------------
-// static float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-//     // positions   // texCoords
-//     -1.0f,  1.0f,  0.0f, 1.0f,
-//     -1.0f, -1.0f,  0.0f, 0.0f,
-//         1.0f, -1.0f,  1.0f, 0.0f,
-
-//     -1.0f,  1.0f,  0.0f, 1.0f,
-//         1.0f, -1.0f,  1.0f, 0.0f,
-//         1.0f,  1.0f,  1.0f, 1.0f
-// };
-// unsigned int quadVAO, quadVBO;
-// glGenVertexArrays(1, &quadVAO);
-// glBindVertexArray(quadVAO);
-// glGenBuffers(1, &quadVBO);
-// glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-// glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
-
-// glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-// glEnableVertexAttribArray(0);
-// glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2*sizeof(float)));
-// glEnableVertexAttribArray(1);
-
-
 Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) 
 {
     mFrameWidth = frameWidth;
     mFrameHeight = frameHeight;
+
+    
 
     // generate frame buffer object
     glGenFramebuffers(1, &mFBO);
@@ -75,11 +50,9 @@ void Renderer::render()
     // ------
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    for (IRenderObject &object : mRenderObjects) {
-        object.render();
+    for (IRenderObject * object : mRenderObjects) {
+        object->render();
     }
-
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -96,7 +69,7 @@ Renderer::~Renderer()
 
 }
 
-void Renderer::addRenderObject(IRenderObject &object)
+void Renderer::addRenderObject(IRenderObject *object)
 {
     mRenderObjects.push_back(object);
 }

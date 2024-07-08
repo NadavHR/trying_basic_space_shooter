@@ -44,7 +44,7 @@ public:
 
     
 private:
-    glm::mat4 mpModelTransformation;
+    glm::mat4 mModelTransformation;
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path);
 

@@ -9,7 +9,7 @@ Model::Model(string const &path, bool gamma) : gammaCorrection(gamma)
 // draws the model, and thus all its meshes
 void Model::Draw(Shader shader)
 {
-    shader.setTransform("model", mpModelTransformation);
+    shader.setTransform("model", mModelTransformation);
     for(unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
 }
@@ -212,9 +212,9 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 }
 
  void Model::setModelTransformation(glm::mat4 model) {
-    mpModelTransformation = model;
+    mModelTransformation = model;
  }
 
  glm::mat4 Model::modelTransformation(){
-    return mpModelTransformation;
+    return mModelTransformation;
  }
