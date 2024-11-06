@@ -1,4 +1,4 @@
-#include "screen_renderer.hpp"
+#include "../headers/screen_renderer.hpp"
 
 static float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
     // positions   // texCoords

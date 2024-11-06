@@ -1,5 +1,4 @@
-#include "spatial_render_object.hpp"
-#include "spatial_render_object.hpp"
+#include "../headers/spatial_render_object.hpp"
 
 const glm::vec4 X_BASE_VECTOR(1.0f, 0.0f, 0.0f, 1.0f);
 const glm::vec4 Y_BASE_VECTOR(0.0f, 1.0f, 0.0f, 1.0f);

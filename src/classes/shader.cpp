@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include "../headers/Shader.hpp"
 
 unsigned int Shader::currentlyUsedProgramID = 0;
 

@@ -1,4 +1,4 @@
-#include "mesh.hpp"
+#include "../headers/mesh.hpp"
 
 
 // constructor

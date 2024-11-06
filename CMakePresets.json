@@ -1,8 +1,5 @@
 {
     "version": 4,
-    "include": [
-        "build\\generators\\CMakePresets.json"
-    ],
     "buildPresets": [
         {
             "name": "Release",

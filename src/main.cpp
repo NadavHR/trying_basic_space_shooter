@@ -13,12 +13,13 @@
 #include <iostream>
 #include <filesystem>
 
-#include "shader.hpp"
-#include "camera.hpp"
-#include "model.hpp"
-#include "renderer.hpp"
-#include "model_render_object.hpp"
-#include "screen_renderer.hpp"
+#include "headers/shader.hpp"
+#include "headers/camera.hpp"
+#include "headers/model.hpp"
+#include "headers/renderer.hpp"
+#include "headers/model_render_object.hpp"
+#include "headers/screen_renderer.hpp"
+#include "headers/input.hpp"
 
 using namespace std;
 
@@ -31,6 +32,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+void bindInputs(GLFWwindow *window);
 
 Camera cam(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -115,15 +117,18 @@ int main()
     modelLoadingShader.setFloat("light.linear",    0.045f);
     modelLoadingShader.setFloat("light.quadratic", 0.0032f);
     
+    bindInputs(window);
 
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        // input
-        // -----
-        processInput(window);
+        
+        InputAction::runChecksAndActions(window);
+
+        position.x = min(max(position.x, -X_MAX), X_MAX);
+        position.y = min(max(position.y, -Y_MAX), Y_MAX);
 
         // render
         // ------
@@ -148,16 +153,37 @@ int main()
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
+    InputAction::clearBoundActions();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// bind all inputs
 // ---------------------------------------------------------------------------------------------------------
+void bindInputs(GLFWwindow *window) {
+    auto closeWindow = new InputAction(GLFW_KEY_ESCAPE, GLFW_PRESS, [&]() { glfwSetWindowShouldClose(window, true);});
+    closeWindow->bind();
+
+    auto up = new InputAction(GLFW_KEY_W, GLFW_PRESS, [&](){ position += glm::vec3(0, deltaTime*speed, 0);});
+    up->bind();
+
+    auto down = new InputAction(GLFW_KEY_S, GLFW_PRESS, [&](){ position += glm::vec3(0, -deltaTime*speed, 0);});
+    down->bind();
+
+    auto left = new InputAction(GLFW_KEY_A, GLFW_PRESS, [&]() { position += glm::vec3(-deltaTime*speed, 0, 0);});
+    left->bind();
+
+    auto right = new InputAction(GLFW_KEY_D, GLFW_PRESS, [&]() { position += glm::vec3(deltaTime*speed, 0, 0);});
+    right->bind();
+
+
+}
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+    
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += glm::vec3(0, deltaTime*speed, 0);
     }
@@ -170,14 +196,16 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         position += glm::vec3(deltaTime*speed, 0, 0);
     }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         cam.processKeyboard(DOWN, deltaTime);
-    if  (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    }
+    if  (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         cam.processKeyboard(UP, deltaTime);
+    }
     
     position.x = min(max(position.x, -X_MAX), X_MAX);
     position.y = min(max(position.y, -Y_MAX), Y_MAX);
-
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

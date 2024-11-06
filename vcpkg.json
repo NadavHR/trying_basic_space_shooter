@@ -4,8 +4,7 @@
       "glfw3",
       "glad",
       "glm",
-      "assimp",
-      "stb"
+      "assimp"
     ]
   }
   

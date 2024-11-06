@@ -1,4 +1,4 @@
-#include "renderer.hpp"
+#include "../headers/renderer.hpp"
 
 Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) 
 {

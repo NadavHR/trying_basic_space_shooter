@@ -1,5 +1,4 @@
-#include "model_render_object.hpp"
-#include "model_render_object.hpp"
+#include "../headers/model_render_object.hpp"
 
 ModelRenderObject::ModelRenderObject(string const &path, Shader * shader, bool gamma) : mModel(path, gamma)
 {

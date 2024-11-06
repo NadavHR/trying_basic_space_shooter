@@ -1,4 +1,4 @@
-#include "model.hpp"
+#include "../headers/model.hpp"
 
 
 Model::Model(string const &path, bool gamma) : gammaCorrection(gamma)
