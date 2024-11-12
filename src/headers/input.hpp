@@ -26,9 +26,13 @@ public:
     void setKeyActionType(unsigned keyActionType);
 
     void bind();
+    void unbind();
 
     static void runChecksAndActions(GLFWwindow * window);
-    static void clearBoundActions();
+    static void deleteAllBoundActions();
+    static InputAction* getBoundAction(size_t i);
+    static size_t boundActionCount();
+
 };
 
 #endif /* INPUT_HPP */

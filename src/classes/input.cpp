@@ -16,14 +16,19 @@ void InputAction::bind() {
     boundActions.push_back(this);
 }
 
-InputAction::~InputAction()
-{
+void InputAction::unbind() {
     if (this->mindex != UNBOUND_INDEX) {
         for (int i = mindex + 1; i < boundActions.size(); i++){
             boundActions[i]->mindex -= 1;
         }
         boundActions.erase(boundActions.begin() + this->mindex);
+        this->mindex = UNBOUND_INDEX;
     }
+}
+
+InputAction::~InputAction()
+{
+    unbind();
 }
 
 std::function<void()> InputAction::getAction() const {
@@ -58,8 +63,16 @@ void InputAction::runChecksAndActions(GLFWwindow * window) {
     }
 }
 
-void InputAction::clearBoundActions() {
+void InputAction::deleteAllBoundActions() {
     while (boundActions.size() != 0) {
         delete boundActions[0];
     }
+}
+
+InputAction* InputAction::getBoundAction(size_t i) {
+    return boundActions[i];
+}
+
+size_t InputAction::boundActionCount() {
+    return boundActions.size();
 }

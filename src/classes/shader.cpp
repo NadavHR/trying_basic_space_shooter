@@ -111,6 +111,10 @@ void Shader::setVec3(const std::string &name, glm::vec3 value) const {
     glUniform3fv(glGetUniformLocation(mProgramID, name.c_str()), 1, glm::value_ptr(value));
 }
 
+void Shader::setVec2(const std::string &name, glm::vec2 value) const {
+    glUniform2fv(glGetUniformLocation(mProgramID, name.c_str()), 1, glm::value_ptr(value));
+}
+
 void Shader::setProjection(glm::mat4 value) const
 {
     Shader::setTransform(UNIFORM_PROJECTION_FIELD, value);

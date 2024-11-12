@@ -20,7 +20,7 @@
 #include "headers/model_render_object.hpp"
 #include "headers/screen_renderer.hpp"
 #include "headers/input.hpp"
-
+#include "headers/crosshair.hpp"
 using namespace std;
 
 const unsigned int SCR_WIDTH = 800;
@@ -31,10 +31,10 @@ const float X_MAX = 2.0;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
 void bindInputs(GLFWwindow *window);
 
 Camera cam(glm::vec3(0.0f, 0.0f, 3.0f));
+Crosshair crosshair(SCR_WIDTH, SCR_HEIGHT, cam);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -59,7 +59,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Space Shooter", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -91,7 +91,7 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     // transformation
-    glm::mat4 projection = glm::perspective(glm::radians(cam.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     // render loop
     // -----------
 
@@ -104,7 +104,7 @@ int main()
     renderer.addRenderObject(&object);
     object.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     object.setScale(glm::vec3(1.0, 1.0, 1.0));
-    ScreenRenderer ScreenRenderer(&renderer, &screenShader);
+    ScreenRenderer screenRenderer(&renderer, &screenShader);
 
     glm::vec3 lightPos(1.0, 1.0, 0.0);
     modelLoadingShader.use();
@@ -118,6 +118,11 @@ int main()
     modelLoadingShader.setFloat("light.quadratic", 0.0032f);
     
     bindInputs(window);
+
+    Shader crosshairShader("shaders/crosshair.vs", "shaders/crosshair.fs");
+    crosshairShader.use();
+    crosshairShader.setInt("screenTexture", 0);
+    ScreenRenderer crosshairScreenRenderer(&renderer, &crosshairShader);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -136,7 +141,10 @@ int main()
         modelLoadingShader.use();
         modelLoadingShader.setTransform("view", cam.getViewMatrix());
         modelLoadingShader.setVec3("viewPos", cam.position());
-        ScreenRenderer.render();
+        screenRenderer.renderAll();
+        crosshairShader.use();
+        crosshairShader.setVec2("position", crosshair.getNormalizedScreenCoords());
+        crosshairScreenRenderer.renderToScreen();
         // glBindVertexArray(0); // no need to unbind it every time 
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -153,7 +161,7 @@ int main()
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
-    InputAction::clearBoundActions();
+    InputAction::deleteAllBoundActions();
     return 0;
 }
 
@@ -178,36 +186,6 @@ void bindInputs(GLFWwindow *window) {
 
 }
 
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-    
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        position += glm::vec3(0, deltaTime*speed, 0);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        position += glm::vec3(0, -deltaTime*speed, 0);
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        position += glm::vec3(-deltaTime*speed, 0, 0);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        position += glm::vec3(deltaTime*speed, 0, 0);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        cam.processKeyboard(DOWN, deltaTime);
-    }
-    if  (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        cam.processKeyboard(UP, deltaTime);
-    }
-    
-    position.x = min(max(position.x, -X_MAX), X_MAX);
-    position.y = min(max(position.y, -Y_MAX), Y_MAX);
-}
-
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -221,23 +199,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    cam.processMouseMovement(xoffset, yoffset);
+    unsigned int xpos = static_cast<unsigned int>(xposIn);
+    unsigned int ypos = static_cast<unsigned int>(SCR_HEIGHT - yposIn);
+    crosshair.setScreenPos(xpos, ypos);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called

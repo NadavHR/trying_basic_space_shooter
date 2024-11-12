@@ -62,7 +62,12 @@ void Renderer::render()
 unsigned int Renderer::getTexture() const {
     return mTexture;
 }
-
+unsigned int Renderer::getFrameBuffer() const {
+    return mFBO;
+}
+unsigned int Renderer::getRenderBuffer() const {
+    return mRBO;
+}
 Renderer::~Renderer()
 {
     glDeleteFramebuffers(1, &mFBO);  

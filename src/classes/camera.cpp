@@ -1,6 +1,6 @@
 #include "../headers/camera.hpp"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : mFront(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : mFront(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), FovY(FOV_Y)
 {
     mPosition = position;
     mWorldUp = up;
@@ -9,7 +9,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : mFron
     updateCameraVectors();
 }
 
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : mFront(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : mFront(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), FovY(FOV_Y)
 {
     mPosition = glm::vec3(posX, posY, posZ);
     mWorldUp = glm::vec3(upX, upY, upZ);
@@ -23,23 +23,6 @@ glm::mat4 Camera::getViewMatrix()
     return glm::lookAt(mPosition, mPosition + mFront, mUp);
 }
 
-void Camera::processKeyboard(Camera_Movement direction, float deltaTime)
-{
-    float velocity = MovementSpeed * deltaTime;
-    if (direction == FORWARD)
-        mPosition += mFront * velocity;
-    else if (direction == BACKWARD)
-        mPosition -= mFront * velocity;
-    else if (direction == LEFT)
-        mPosition -= mRight * velocity;
-    else if (direction == RIGHT)
-        mPosition += mRight * velocity;
-    else if (direction == DOWN)
-        mPosition -= mUp * velocity;
-    else if (direction == UP)
-        mPosition += mUp * velocity;
-    
-}
 
 void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
 {
@@ -64,11 +47,11 @@ void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constr
 
 void Camera::processMouseScroll(float yoffset)
 {
-    Zoom -= (float)yoffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
+    FovY -= (float)yoffset;
+    if (FovY < 1.0f)
+        FovY = 1.0f;
+    if (FovY > 45.0f)
+        FovY = 45.0f;
 }
 
 void Camera::updateCameraVectors()

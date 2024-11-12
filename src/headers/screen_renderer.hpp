@@ -4,7 +4,9 @@
 class ScreenRenderer {
     public:
         ScreenRenderer(Renderer * pRenderer, Shader * pShader);
-        void render();
+        void renderAll();
+        void renderScreenEffects();
+        void renderToScreen();
         ~ScreenRenderer();
 
         Shader * getPShader() const;
@@ -21,6 +23,7 @@ class ScreenRenderer {
         Renderer * mpRenderer;
         unsigned int mQuadVAO;
         unsigned int mQuadVBO;
+        inline void basicRenderEffects();
 
 
 };

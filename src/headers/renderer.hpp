@@ -12,6 +12,8 @@ class Renderer {
         ~Renderer();
         void addRenderObject(IRenderObject * object);
         unsigned int getTexture() const;
+        unsigned int getFrameBuffer() const;
+        unsigned int getRenderBuffer() const;
     
     private:
         unsigned int mFrameWidth, mFrameHeight;

@@ -1,0 +1,44 @@
+#include "../headers/crosshair.hpp"
+
+
+
+Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam) {
+    mscreenWidth = screenWidth;
+    mscreenHeight = screenHeight;
+    screenRatio = (float)screenWidth / (float)screenHeight;
+    mscreenPos = glm::uvec2(screenWidth / 2, screenHeight / 2);
+}
+
+void Crosshair::setScreenPos(unsigned int x, unsigned int y) {
+    mscreenPos.x = x;
+    mscreenPos.y = y;
+}
+
+glm::uvec2 Crosshair::getScreenPos() {
+    return mscreenPos;
+}
+
+glm::vec3 Crosshair::getNormalizedDirection() {
+    float screenX = ((float)mscreenPos.x - (float)(mscreenWidth / 2));  // focalLengthX * x / z
+    float screenY = ((float)mscreenPos.y - (float)(mscreenHeight / 2)); // focalLengthY * y / z 
+    float fovRadiansY = glm::radians(mcam.FovY);
+    float focalLengthY = 2 * glm::tan(fovRadiansY*0.5);  // yPlane divided by z
+    float focalLengthX = focalLengthY * screenRatio;     // xPlane divided by z
+    focalLengthY = mscreenHeight / focalLengthY;         // z * h / yPlane  
+    focalLengthX = mscreenWidth / focalLengthX;          // z * w / xPlane
+
+    // we start by assuming z = 1 -> 
+    // * screenX = focalLengthX * x,  screenY = focalLengthY * y
+    float x = screenX / focalLengthX;
+    float y = screenY / focalLengthY;
+    
+    glm::vec3 normalizedDirection(x, y, 1);
+    normalizedDirection *= (1/normalizedDirection.length());
+    return normalizedDirection;
+}
+
+glm::vec2 Crosshair::getNormalizedScreenCoords() {
+    float screenX = ((float)mscreenPos.x) / ((float)mscreenWidth);  
+    float screenY = ((float)mscreenPos.y) / ((float)mscreenHeight);
+    return glm::vec2(screenX, screenY);
+}
