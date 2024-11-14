@@ -21,6 +21,7 @@ char * openRawSource(std::string fileName) {
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) 
 {
+
     const char* vShaderCode = openRawSource(vertexPath);
     const char* fShaderCode = openRawSource(fragmentPath);
 

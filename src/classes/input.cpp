@@ -11,6 +11,16 @@ InputAction::InputAction(unsigned key, unsigned keyActionType, std::function<voi
     mindex = UNBOUND_INDEX; 
 }
 
+InputAction::InputAction(unsigned key, unsigned keyActionType, std::function<void()> action, std::function<void()> onFalse)
+{
+    mkey = key;
+    mkeyActionType = keyActionType;
+    maction = action;
+    mactionOnFalse = onFalse;
+    mindex = UNBOUND_INDEX; 
+}
+
+
 void InputAction::bind() {
     mindex = boundActions.size();
     boundActions.push_back(this);
@@ -39,6 +49,14 @@ void InputAction::setAction(const std::function<void()> &action) {
     maction = action;
 }
 
+std::function<void()> InputAction::getOnFalseAction() const {
+    return mactionOnFalse;
+}
+
+void InputAction::setOnFalseAction(const std::function<void()> &action) {
+    mactionOnFalse = action;
+}
+
 unsigned InputAction::getKey() const {
     return mkey;
 }
@@ -59,6 +77,9 @@ void InputAction::runChecksAndActions(GLFWwindow * window) {
     for (InputAction * inputAction : boundActions) {
         if (glfwGetKey(window, inputAction->mkey) == inputAction->mkeyActionType) {
             inputAction->maction();
+        }
+        else {
+            inputAction->mactionOnFalse();
         }
     }
 }

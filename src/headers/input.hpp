@@ -9,6 +9,7 @@ class InputAction
 private:
     static std::vector<InputAction *> boundActions;
     std::function<void()> maction;
+    std::function<void()> mactionOnFalse = []() {};
     unsigned mkey;
     unsigned mkeyActionType;
     size_t mindex;
@@ -17,9 +18,12 @@ private:
     
 public:
     InputAction(unsigned key, unsigned keyActionType, std::function<void()> action);
+    InputAction(unsigned key, unsigned keyActionType, std::function<void()> action, std::function<void()> onFalse);
     ~InputAction();
     std::function<void()> getAction() const;
     void setAction(const std::function<void()> &action);
+    std::function<void()> getOnFalseAction() const;
+    void setOnFalseAction(const std::function<void()> &action);
     unsigned getKey() const;
     void setKey(unsigned key);
     unsigned getKeyActionType() const;

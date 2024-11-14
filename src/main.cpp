@@ -21,6 +21,8 @@
 #include "headers/screen_renderer.hpp"
 #include "headers/input.hpp"
 #include "headers/crosshair.hpp"
+#include "headers/spaceship.hpp"
+
 using namespace std;
 
 const unsigned int SCR_WIDTH = 800;
@@ -43,8 +45,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-float speed = 2.5f;
-glm::vec3 position(0.0f, 0.0f, 0.0f);
+Spaceship * spaceship;
 
 int main()
 {
@@ -82,7 +83,6 @@ int main()
     glEnable(GL_DEPTH_TEST);  
     glEnable(GL_STENCIL_TEST);    
     glEnable(GL_CULL_FACE);  
-    Shader modelLoadingShader("shaders/modelLoading.vs", "shaders/modelLoading.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -94,28 +94,18 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     // render loop
     // -----------
+    spaceship = new Spaceship(projection);
 
     Shader screenShader("shaders/screen.vs", "shaders/screen.fs");
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
 
     Renderer renderer(SCR_WIDTH, SCR_HEIGHT);
-    ModelRenderObject object((std::filesystem::absolute("models/backpack/backpack.obj")).generic_string(), &modelLoadingShader);
+    ModelRenderObject& object = spaceship->getRenderObject();
     renderer.addRenderObject(&object);
     object.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     object.setScale(glm::vec3(1.0, 1.0, 1.0));
     ScreenRenderer screenRenderer(&renderer, &screenShader);
-
-    glm::vec3 lightPos(1.0, 1.0, 0.0);
-    modelLoadingShader.use();
-    modelLoadingShader.setProjection(projection);
-    modelLoadingShader.setVec3("light.position", lightPos);
-    modelLoadingShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-    modelLoadingShader.setVec3("light.diffuse", glm::vec3(0.9f, 0.9f, 0.9f)); // darken diffuse light a bit
-    modelLoadingShader.setVec3("light.specular",glm::vec3(1.0f, 1.0f, 1.0f)); 
-    modelLoadingShader.setFloat("light.constant",  1.0f);
-    modelLoadingShader.setFloat("light.linear",    0.045f);
-    modelLoadingShader.setFloat("light.quadratic", 0.0032f);
     
     bindInputs(window);
 
@@ -131,16 +121,10 @@ int main()
         lastFrame = currentFrame;
         
         InputAction::runChecksAndActions(window);
-
-        position.x = min(max(position.x, -X_MAX), X_MAX);
-        position.y = min(max(position.y, -Y_MAX), Y_MAX);
+        spaceship->periodic(deltaTime, cam.getViewMatrix(), cam.position());
 
         // render
         // ------
-        object.setPosition(position);
-        modelLoadingShader.use();
-        modelLoadingShader.setTransform("view", cam.getViewMatrix());
-        modelLoadingShader.setVec3("viewPos", cam.position());
         screenRenderer.renderAll();
         crosshairShader.use();
         crosshairShader.setVec2("position", crosshair.getNormalizedScreenCoords());
@@ -162,6 +146,7 @@ int main()
     // ------------------------------------------------------------------
     glfwTerminate();
     InputAction::deleteAllBoundActions();
+    delete spaceship;
     return 0;
 }
 
@@ -171,16 +156,16 @@ void bindInputs(GLFWwindow *window) {
     auto closeWindow = new InputAction(GLFW_KEY_ESCAPE, GLFW_PRESS, [&]() { glfwSetWindowShouldClose(window, true);});
     closeWindow->bind();
 
-    auto up = new InputAction(GLFW_KEY_W, GLFW_PRESS, [&](){ position += glm::vec3(0, deltaTime*speed, 0);});
+    auto up = new InputAction(GLFW_KEY_W, GLFW_PRESS, [&](){ spaceship->inputY(1.0);});
     up->bind();
 
-    auto down = new InputAction(GLFW_KEY_S, GLFW_PRESS, [&](){ position += glm::vec3(0, -deltaTime*speed, 0);});
+    auto down = new InputAction(GLFW_KEY_S, GLFW_PRESS, [&](){ spaceship->inputY(-1.0);});
     down->bind();
 
-    auto left = new InputAction(GLFW_KEY_A, GLFW_PRESS, [&]() { position += glm::vec3(-deltaTime*speed, 0, 0);});
+    auto left = new InputAction(GLFW_KEY_A, GLFW_PRESS, [&]() { spaceship->inputX(-1.0);});
     left->bind();
 
-    auto right = new InputAction(GLFW_KEY_D, GLFW_PRESS, [&]() { position += glm::vec3(deltaTime*speed, 0, 0);});
+    auto right = new InputAction(GLFW_KEY_D, GLFW_PRESS, [&]() { spaceship->inputX(1.0);});
     right->bind();
 
 

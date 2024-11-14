@@ -9,7 +9,7 @@ uniform sampler2D screenTexture;
 void main()
 {
     vec2 positionRelative = TexCoords - position;
-    vec3 sampleTex[9];
+    // vec3 sampleTex[9];
     // for(int i = 0; i < 9; i++)
     // {
     //     sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
@@ -18,8 +18,9 @@ void main()
     // for(int i = 0; i < 9; i++) {
     //     col += sampleTex[i] * kernel[i];
     // }
-    if (length(positionRelative) < 0.05 ) {
-        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    float dis = length(positionRelative);
+    if (dis < 0.05 ) {
+        FragColor = vec4(clamp(col.r + dis/0.05, 0, 1), col.g, col.b, 1.0);
     } else {
         FragColor = vec4(col, 1.0);
     }
