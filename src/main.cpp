@@ -88,7 +88,7 @@ int main()
     // ------------------------------------------------------------------
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     // transformation
     glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);

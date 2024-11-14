@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <filesystem>
 
-const float X_BOUND = 2.0, Y_BOUND = 1.5, MAX_VEL = 3.0;
+const float X_BOUND = 1.8, Y_BOUND = 1.3, MAX_VEL = 3.0;
 class Spaceship {
     private:
         ModelRenderObject mmodel;

@@ -2,7 +2,7 @@
 
 
 Spaceship::Spaceship(glm::mat4 projection) : mshader("shaders/modelLoading.vs", "shaders/modelLoading.fs"), 
-mmodel((std::filesystem::absolute("models/backpack/backpack.obj")).generic_string(), &mshader) {
+mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), &mshader) {
     glm::vec3 lightPos(1.0, 1.0, 0.0);
     mshader.use();
     mshader.setProjection(projection);

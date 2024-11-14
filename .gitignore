@@ -12,4 +12,3 @@ _deps
 /vcpkg_installed/
 /build/
 /.vscode/
-*/models/*
