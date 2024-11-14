@@ -94,12 +94,11 @@ int main()
     glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     // render loop
     // -----------
-    spaceship = new Spaceship(projection);
+    spaceship = new Spaceship(crosshair);
 
     Shader screenShader("shaders/screen.vs", "shaders/screen.fs");
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
-
     Renderer renderer(SCR_WIDTH, SCR_HEIGHT);
     ModelRenderObject& object = spaceship->getRenderObject();
     renderer.addRenderObject(&object);
@@ -121,7 +120,7 @@ int main()
         lastFrame = currentFrame;
         
         InputAction::runChecksAndActions(window);
-        spaceship->periodic(deltaTime, cam.getViewMatrix(), cam.position());
+        spaceship->periodic(deltaTime);
 
         // render
         // ------
