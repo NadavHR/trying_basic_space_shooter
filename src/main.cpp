@@ -12,23 +12,18 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
 #include <filesystem>
-
+#include "headers/renderer.hpp"
 #include "headers/shader.hpp"
 #include "headers/camera.hpp"
 #include "headers/model.hpp"
-#include "headers/renderer.hpp"
 #include "headers/model_render_object.hpp"
 #include "headers/screen_renderer.hpp"
 #include "headers/input.hpp"
 #include "headers/crosshair.hpp"
 #include "headers/spaceship.hpp"
+#include "headers/static_utils.hpp"
 
 using namespace std;
-
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-const float Y_MAX = 1.5;
-const float X_MAX = 2.0;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -36,17 +31,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void bindInputs(GLFWwindow *window);
 
 Camera cam(glm::vec3(0.0f, 0.0f, 0.0f));
-Crosshair crosshair(SCR_WIDTH, SCR_HEIGHT, cam);
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+Crosshair * crosshair;
 bool firstMouse = true;
 
-// timing
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
 Spaceship * spaceship;
-
+float timing::deltaTime = 0;
+float timing::lastFrame = 0;
+Renderer* rendering::renderer = NULL;
 int main()
 {
     // glfw: initialize and configure
@@ -60,7 +51,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Space Shooter", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screen::SCR_WIDTH, screen::SCR_HEIGHT, "Space Shooter", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -91,43 +82,37 @@ int main()
     // stbi_set_flip_vertically_on_load(true);
 
     // transformation
-    glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(cam.FovY), (float)screen::SCR_WIDTH / (float)screen::SCR_HEIGHT, 0.1f, 100.0f);
     // render loop
     // -----------
-    spaceship = new Spaceship(crosshair);
 
     Shader screenShader("shaders/screen.vs", "shaders/screen.fs");
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
-    Renderer renderer(SCR_WIDTH, SCR_HEIGHT);
-    ModelRenderObject& object = spaceship->getRenderObject();
-    renderer.addRenderObject(&object);
-    object.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
-    object.setScale(glm::vec3(1.0, 1.0, 1.0));
-    ScreenRenderer screenRenderer(&renderer, &screenShader);
+    Renderer renderer = Renderer(screen::SCR_WIDTH, screen::SCR_HEIGHT);
+    rendering::renderer = &renderer;
+    Crosshair cross = Crosshair(screen::SCR_WIDTH, screen::SCR_HEIGHT, cam);
+    crosshair = &cross;
+    spaceship = new Spaceship(*crosshair);
+    ScreenRenderer screenRenderer(rendering::renderer, &screenShader);
     
     bindInputs(window);
 
-    Shader crosshairShader("shaders/crosshair.vs", "shaders/crosshair.fs");
-    crosshairShader.use();
-    crosshairShader.setInt("screenTexture", 0);
-    ScreenRenderer crosshairScreenRenderer(&renderer, &crosshairShader);
-
     while (!glfwWindowShouldClose(window))
     {
+        glEnable(GL_DEPTH_TEST);  // enable depth test 
+        renderer.render();
         float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        timing::deltaTime = currentFrame - timing::lastFrame;
+        timing::lastFrame = currentFrame;
         
         InputAction::runChecksAndActions(window);
-        spaceship->periodic(deltaTime);
+        spaceship->periodic(timing::deltaTime);
+        crosshair->periodic();
 
         // render
         // ------
-        screenRenderer.renderAll();
-        crosshairShader.use();
-        crosshairShader.setVec2("position", crosshair.getNormalizedScreenCoords());
-        crosshairScreenRenderer.renderToScreen();
+        screenRenderer.renderToScreen();
         // glBindVertexArray(0); // no need to unbind it every time 
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -186,8 +171,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     unsigned int xpos = static_cast<unsigned int>(xposIn);
-    unsigned int ypos = static_cast<unsigned int>(SCR_HEIGHT - 1 - yposIn);
-    crosshair.setScreenPos(xpos, ypos);
+    unsigned int ypos = static_cast<unsigned int>(screen::SCR_HEIGHT - 1 - yposIn);
+    crosshair->setScreenPos(xpos, ypos);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called

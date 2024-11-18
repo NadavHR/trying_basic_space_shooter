@@ -1,7 +1,10 @@
 #ifndef CROSSHAIR_HPP
 #define CROSSHAIR_HPP
 #include "camera.hpp"
+#include "shader.hpp"
+#include "screen_renderer.hpp"
 #include <glm/glm.hpp>
+#include "static_utils.hpp"
 class Crosshair {
     private:
         unsigned int mscreenWidth;
@@ -9,6 +12,9 @@ class Crosshair {
         float screenRatio;
         Camera& mcam;
         glm::uvec2 mscreenPos;
+        Shader mcrosshairShader;
+        ScreenRenderer mscreenRenderer;
+
 
 
     public:
@@ -21,6 +27,7 @@ class Crosshair {
         unsigned int getScreenHeight();
         unsigned int getScreenWidth();
         Camera& getCam();
+        void periodic();
 
 };
 

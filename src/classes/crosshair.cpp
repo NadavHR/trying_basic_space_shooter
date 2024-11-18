@@ -1,10 +1,13 @@
 #include "../headers/crosshair.hpp"
 
-Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam) {
+Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam), mcrosshairShader("shaders/crosshair.vs", "shaders/crosshair.fs"),
+    mscreenRenderer(rendering::renderer, &mcrosshairShader) {
     mscreenWidth = screenWidth;
     mscreenHeight = screenHeight;
     screenRatio = (float)screenWidth / (float)screenHeight;
     mscreenPos = glm::uvec2(screenWidth / 2, screenHeight / 2);
+    mcrosshairShader.use();
+    mcrosshairShader.setInt("screenTexture", 0);
 }
 
 void Crosshair::setScreenPos(unsigned int x, unsigned int y) {
@@ -53,4 +56,10 @@ unsigned int Crosshair::getScreenHeight() {
 
 Camera & Crosshair::getCam() {
     return mcam;
+}
+
+void Crosshair::periodic() {
+    mcrosshairShader.use();
+    mcrosshairShader.setVec2("position", getNormalizedScreenCoords());
+    mscreenRenderer.renderScreenEffects();
 }

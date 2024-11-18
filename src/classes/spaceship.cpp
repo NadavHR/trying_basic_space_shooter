@@ -9,6 +9,10 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader("shaders/modelLoading.vs",
     mshader.setProjection(glm::perspective(glm::radians(crosshair.getCam().FovY),
      (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f));
     mmodel.setPosition(glm::vec3(0.0, 0.0, 3.0));
+    mmodel.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
+    mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
+    rendering::renderer->addRenderObject(&mmodel);
+
 }
 
 void Spaceship::periodic(float deltaTimeSec) {

@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <filesystem>
 #include "../headers/crosshair.hpp"
+#include "renderer.hpp"
+#include "static_utils.hpp"
 
 const float X_BOUND = 1.8, Y_BOUND = 1.3, 
             MAX_VEL = 3.0, AIM_EFFECT_STRENGTH = 10.0,
