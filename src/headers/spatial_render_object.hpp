@@ -13,7 +13,8 @@ class SpatialRenderObject : public IRenderObject {
         glm::vec3 getRotationRad() const;
         void setRotationRad(const glm::vec3 &mRotationRad_);
 
-        glm::mat4 getTransformationMatrix();
+        glm::mat4 getTransformationMatrixForRendering();
+        glm::mat4 getRotationTransform();
     
     protected:
         bool mTransformChanged;

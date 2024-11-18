@@ -43,14 +43,19 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight)
 
 }
 
+void Renderer::clear() {
+    glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+}
+
 void Renderer::render()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
     // render
     // ------
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
     for (IRenderObject * object : mRenderObjects) {
         object->render();
     }
@@ -58,7 +63,14 @@ void Renderer::render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
+void Renderer::renderTarget(IRenderObject &target) {
+    glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+    // render
+    // -----
+    target.render();
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 unsigned int Renderer::getTexture() const {
     return mTexture;
 }

@@ -100,14 +100,15 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        glEnable(GL_DEPTH_TEST);  // enable depth test 
-        renderer.render();
+        glEnable(GL_DEPTH_TEST);  // enable depth test
+        renderer.clear(); 
         float currentFrame = static_cast<float>(glfwGetTime());
         timing::deltaTime = currentFrame - timing::lastFrame;
         timing::lastFrame = currentFrame;
         
         InputAction::runChecksAndActions(window);
         spaceship->periodic(timing::deltaTime);
+        renderer.render();
         crosshair->periodic();
 
         // render

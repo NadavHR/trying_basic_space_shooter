@@ -8,7 +8,7 @@ ModelRenderObject::ModelRenderObject(string const &path, Shader * shader, bool g
 void ModelRenderObject::draw() {
 
     if (mTransformChanged) {
-        mModel.setModelTransformation(getTransformationMatrix());
+        mModel.setModelTransformation(getTransformationMatrixForRendering());
         mTransformChanged = false;
     }
     

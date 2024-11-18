@@ -9,6 +9,8 @@ class Renderer {
     public:
         Renderer(unsigned int screenWidth, unsigned int screenHeight);
         void render(); 
+        void renderTarget(IRenderObject &target);
+        void clear();
         ~Renderer();
         void addRenderObject(IRenderObject * object);
         unsigned int getTexture() const;

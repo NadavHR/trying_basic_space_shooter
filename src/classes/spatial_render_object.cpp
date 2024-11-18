@@ -22,7 +22,16 @@ void SpatialRenderObject::setRotationRad(const glm::vec3 &mRotationRad_) {
     mTransformChanged = true;
 }
 
-glm::mat4 SpatialRenderObject::getTransformationMatrix()
+glm::mat4 SpatialRenderObject::getRotationTransform() {
+    glm::mat4 rotation(1.0f);  // rotation
+
+    rotation = glm::rotate(rotation, mRotationRad.z, glm::vec3(-Z_BASE_VECTOR));
+    rotation = glm::rotate(rotation, mRotationRad.y, glm::vec3(-Y_BASE_VECTOR));
+    rotation = glm::rotate(rotation, mRotationRad.x, glm::vec3(-X_BASE_VECTOR));
+    return rotation;
+}   
+
+glm::mat4 SpatialRenderObject::getTransformationMatrixForRendering()
 {
     glm::mat4 rotation(1.0f);  // rotation
 

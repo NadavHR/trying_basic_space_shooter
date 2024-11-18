@@ -3,16 +3,20 @@
 
 Spaceship::Spaceship(Crosshair & crosshair) : mshader("shaders/modelLoading.vs", "shaders/modelLoading.fs"), 
         mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), &mshader),
-        mcrosshair(crosshair) {
+        mcrosshair(crosshair), mlaserShader("shaders/laserBeam.vs", "shaders/laserBeam.fs"), 
+        mlaserModel((std::filesystem::absolute("models/laser/laser.gltf")).generic_string(), &mlaserShader) {
     glm::vec3 lightPos(1.0, 1.0, 0.0);
+    auto perspective = glm::perspective(glm::radians(crosshair.getCam().FovY),
+     (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f);
     mshader.use();
-    mshader.setProjection(glm::perspective(glm::radians(crosshair.getCam().FovY),
-     (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f));
+    mshader.setProjection(perspective);
+    mlaserShader.use();
+    mlaserShader.setProjection(perspective);
     mmodel.setPosition(glm::vec3(0.0, 0.0, 3.0));
     mmodel.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
+    mlaserModel.setScale(glm::vec3(2.0, 2.0, 4.0));
     rendering::renderer->addRenderObject(&mmodel);
-
 }
 
 void Spaceship::periodic(float deltaTimeSec) {
@@ -52,13 +56,15 @@ void Spaceship::periodic(float deltaTimeSec) {
     glm::quat quat = glm::lookAt(mmodel.getPosition(), 
         (mcrosshair.getPlanarDirectionVector() * AIM_EFFECT_STRENGTH),
         glm::vec3(0.0, 1.0, 0.0));
-    mmodel.setRotationRad(glm::vec3(glm::pitch(quat), glm::yaw(quat) - glm::pi<float>(), glm::roll(quat)));
+    glm::vec3 rotVector = glm::vec3(glm::pitch(quat), glm::yaw(quat) - glm::pi<float>(), glm::roll(quat));
+    mmodel.setRotationRad(rotVector);
     mmodel.setPosition(position);
 
     mlastShotSec += deltaTimeSec;
-    if (mlastShotSec >= SHOOT_COOLDOWN_SEC) {
+    if (mlastShotSec >= SHOOT_COOLDOWN_SEC && misShooting) {
         mlastShotSec = fmod(mlastShotSec, SHOOT_COOLDOWN_SEC);
-        // TODO: add code for shooting laser here
+        mlaserModel.setRotationRad(rotVector);
+        mlaserModel.setPosition(position);
     }
 
     mshader.use();
@@ -66,7 +72,7 @@ void Spaceship::periodic(float deltaTimeSec) {
     mshader.setVec3("viewPos", mcrosshair.getCam().position());
     mcrosshair.getNormalizedDirection(); // delete this
 
-    if (misShooting && mlastShotSec <= SHOOT_EFFECT_TIME_SEC) {
+    if (mlastShotSec <= SHOOT_EFFECT_TIME_SEC) {
         mshader.setVec3("light.position",
          (mlastShotSec * LASER_SPEED) * glm::normalize((DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector()) - position));
         mshader.setVec3("light.ambient", glm::vec3(0.3f, 0.2f, 0.2f));
@@ -75,6 +81,13 @@ void Spaceship::periodic(float deltaTimeSec) {
         mshader.setFloat("light.constant",  0.75f);
         mshader.setFloat("light.linear",    0.05f);
         mshader.setFloat("light.quadratic", 0.001f); 
+        mlaserShader.use();
+        mlaserShader.setTransform("view", mcrosshair.getCam().getViewMatrix());
+        mlaserShader.setVec3("viewPos", mcrosshair.getCam().position());
+        glEnable(GL_DEPTH_TEST);
+        mlaserModel.setPosition(mlaserModel.getPosition() 
+        + ( LASER_SPEED * mlastShotSec * glm::vec3((mlaserModel.getRotationTransform() * glm::vec4(0.0, 0.0, 0.1, 0.0)))));
+        rendering::renderer->renderTarget(mlaserModel); // this makes sure we wont render the laser 
     } else {
         mshader.setVec3("light.position", DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector());
         mshader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
