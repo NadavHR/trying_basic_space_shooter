@@ -35,7 +35,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void bindInputs(GLFWwindow *window);
 
-Camera cam(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera cam(glm::vec3(0.0f, 0.0f, 0.0f));
 Crosshair crosshair(SCR_WIDTH, SCR_HEIGHT, cam);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -167,6 +167,8 @@ void bindInputs(GLFWwindow *window) {
     auto right = new InputAction(GLFW_KEY_D, GLFW_PRESS, [&]() { spaceship->inputX(1.0);});
     right->bind();
 
+    auto shoot = new InputAction(GLFW_KEY_E, GLFW_PRESS, [&]() {spaceship->shoot(true);}, [&]() {spaceship->shoot(false);});
+    shoot->bind();
 
 }
 
@@ -184,7 +186,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     unsigned int xpos = static_cast<unsigned int>(xposIn);
-    unsigned int ypos = static_cast<unsigned int>(SCR_HEIGHT - yposIn);
+    unsigned int ypos = static_cast<unsigned int>(SCR_HEIGHT - 1 - yposIn);
     crosshair.setScreenPos(xpos, ypos);
 }
 

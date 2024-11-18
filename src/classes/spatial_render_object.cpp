@@ -26,15 +26,18 @@ glm::mat4 SpatialRenderObject::getTransformationMatrix()
 {
     glm::mat4 rotation(1.0f);  // rotation
 
+    rotation = glm::rotate(rotation, mRotationRad.z, glm::vec3(Z_BASE_VECTOR));
+    rotation = glm::rotate(rotation, mRotationRad.y, glm::vec3(Y_BASE_VECTOR));
     rotation = glm::rotate(rotation, mRotationRad.x, glm::vec3(X_BASE_VECTOR));
-    rotation = glm::rotate(rotation, mRotationRad.y, glm::vec3(rotation * Y_BASE_VECTOR));
-    rotation = glm::rotate(rotation, mRotationRad.z, glm::vec3(rotation * Z_BASE_VECTOR));
+    
 
     glm::mat4 scale(1.0f);
 
     scale = glm::scale(scale, mScale);         // scale
     glm::mat4 translation(1.0f);
-    translation = glm::translate(translation, mPosition);  // translate
+    glm::vec3 position(mPosition);
+    position.z *= -1.0;  // this is so spatial render objects will have +z as camera front
+    translation = glm::translate(translation, position);  // translate
     return translation * rotation * scale;
 }
 

@@ -1,7 +1,5 @@
 #include "../headers/crosshair.hpp"
 
-
-
 Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam) {
     mscreenWidth = screenWidth;
     mscreenHeight = screenHeight;
@@ -29,8 +27,7 @@ glm::vec3 Crosshair::getPlanarDirectionVector() {
     // we start by assuming z = 1 -> 
     // * screenX = focalLengthX * x,  screenY = focalLengthY * y
     float x = screenX / focalLengthX;
-    float y = screenY / focalLengthY;
-    
+    float y = screenY / focalLengthY; 
     return glm::vec3(x, y, 1);
 }
 
