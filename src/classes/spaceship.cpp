@@ -1,8 +1,14 @@
 #include "../headers/spaceship.hpp"
 
-
-Spaceship::Spaceship(Crosshair & crosshair) : mshader("shaders/modelLoading.vs", "shaders/modelLoading.fs"), 
-        mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), &mshader),
+Shader * shaders::modelLoadingShader = NULL;
+Shader * shaders::safeGetModelLoadingShader() {
+    if (modelLoadingShader == NULL) {
+        modelLoadingShader = new Shader("shaders/modelLoading.vs", "shaders/modelLoading.fs");
+    }
+    return modelLoadingShader;
+}
+Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoadingShader()),
+        mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), shaders::safeGetModelLoadingShader()),
         mcrosshair(crosshair), mlaserShader("shaders/laserBeam.vs", "shaders/laserBeam.fs"), 
         mlaserModel((std::filesystem::absolute("models/laser/laser.gltf")).generic_string(), &mlaserShader) {
     glm::vec3 lightPos(1.0, 1.0, 0.0);
@@ -10,6 +16,9 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader("shaders/modelLoading.vs",
      (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f);
     mshader.use();
     mshader.setProjection(perspective);
+    mshader.setVec3("DirectionalLightDirection", glm::vec3(1, -1, 0.5));
+    mshader.setVec3("DirectionalLightDiffuse", glm::vec3(0.2, 0.2, 0.2));
+    mshader.setVec3("DirectionalLightSpecular", glm::vec3(0.2, 0.2, 0.2));
     mlaserShader.use();
     mlaserShader.setProjection(perspective);
     mmodel.setPosition(glm::vec3(0.0, 0.0, 3.0));

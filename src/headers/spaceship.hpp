@@ -17,7 +17,7 @@ class Spaceship {
         ModelRenderObject mmodel;
         ModelRenderObject mlaserModel;
         Shader mlaserShader;
-        Shader mshader;
+        Shader& mshader;
         glm::vec3 mvelocity = glm::vec3(0.0, 0.0, 0.0);
         Crosshair &mcrosshair;
         float mdecel = 1.7  ; // the direction is always opposite to the speed 

@@ -16,4 +16,9 @@ namespace rendering {
     extern Renderer * renderer;
 }
 
+namespace shaders {
+    #include "shader.hpp"
+    extern Shader * modelLoadingShader;
+    extern Shader * safeGetModelLoadingShader();
+}
 #endif /* STATIC_UTILS_HPP */
