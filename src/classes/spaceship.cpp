@@ -1,12 +1,5 @@
 #include "../headers/spaceship.hpp"
 
-Shader * shaders::modelLoadingShader = NULL;
-Shader * shaders::safeGetModelLoadingShader() {
-    if (modelLoadingShader == NULL) {
-        modelLoadingShader = new Shader("shaders/modelLoading.vs", "shaders/modelLoading.fs");
-    }
-    return modelLoadingShader;
-}
 Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoadingShader()),
         mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), shaders::safeGetModelLoadingShader()),
         mcrosshair(crosshair), mlaserShader("shaders/laserBeam.vs", "shaders/laserBeam.fs"), 
@@ -14,6 +7,7 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoad
     glm::vec3 lightPos(1.0, 1.0, 0.0);
     auto perspective = glm::perspective(glm::radians(crosshair.getCam().FovY),
      (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f);
+    rendering::projection = perspective;
     mshader.use();
     mshader.setProjection(perspective);
     mshader.setVec3("DirectionalLightDirection", glm::vec3(1, -1, 0.5));
@@ -79,6 +73,8 @@ void Spaceship::periodic(float deltaTimeSec) {
     mshader.use();
     mshader.setTransform("view", mcrosshair.getCam().getViewMatrix());
     mshader.setVec3("viewPos", mcrosshair.getCam().position());
+    rendering::view = mcrosshair.getCam().getViewMatrix();
+    rendering::viewPos =  mcrosshair.getCam().position();
 
     if (mlastShotSec <= SHOOT_EFFECT_TIME_SEC) {
         mshader.setVec3("light.position",

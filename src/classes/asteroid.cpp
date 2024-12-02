@@ -1,5 +1,5 @@
 #include "../headers/asteroid.hpp"
-#define RAND_RANGE_F(low, high)  (low + (float)(rand()) / ( (float)(RAND_MAX/(high-(low)))))
+
 ModelRenderObject* Asteroid::basicModel = NULL;
 std::vector<Asteroid *> Asteroid::targets = std::vector<Asteroid *>(); 
 
@@ -24,6 +24,12 @@ Asteroid::~Asteroid(){
       targets[i]->mindex -= 1;
   }
   targets.erase(targets.begin() + this->mindex);
+
+  ParticleEffect * effect = new ParticleEffect(shaders::safeGetDebrisShader(), 
+          1.0, effectOptions::PARTICLE_COUNT, *(basicModel->getModel())); // i know its not cleared, its fine
+  glm::vec3 position = mposition;
+  position.z *= -1;
+  effect->setPosition(position);
 }  
 
 bool Asteroid::isHit(const Crosshair& crosshair ) {

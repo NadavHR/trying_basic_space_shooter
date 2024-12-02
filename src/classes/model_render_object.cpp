@@ -18,3 +18,7 @@ void ModelRenderObject::draw() {
 ModelRenderObject::~ModelRenderObject() {
     mModel.~Model();
 }
+
+Model * ModelRenderObject::getModel() {
+    return &mModel;
+}

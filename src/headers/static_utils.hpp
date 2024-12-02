@@ -1,5 +1,8 @@
 #ifndef STATIC_UTILS_HPP
 #define STATIC_UTILS_HPP
+#include "shader.hpp"
+#include "renderer.hpp"
+#define RAND_RANGE_F(low, high)  (low + (float)(rand()) / ( (float)(RAND_MAX/(high-(low)))))
 
 namespace timing {
     // timing
@@ -13,13 +16,21 @@ namespace screen {
 }
 
 namespace rendering {
-    #include "renderer.hpp"
-    extern Renderer * renderer;
+    extern Renderer* renderer;
+    extern glm::mat4 projection;
+    extern glm::mat4 view;
+    extern glm::vec3 viewPos;
 }
 
 namespace shaders {
-    #include "shader.hpp"
     extern Shader * modelLoadingShader;
     extern Shader * safeGetModelLoadingShader();
+    extern Shader * debrisParticleEffectsShader;
+    extern Shader * safeGetDebrisShader();
 }
+
+namespace effectOptions {
+    const unsigned int PARTICLE_COUNT = 100; 
+}
+
 #endif /* STATIC_UTILS_HPP */

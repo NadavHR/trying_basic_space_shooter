@@ -12,9 +12,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
     setupMesh();
 }
 
-// render the mesh
-void Mesh::Draw(Shader &shader) 
-{
+void Mesh::bindTextures(Shader &shader) {
     // bind appropriate textures
     unsigned int diffuseNr  = 1;
     unsigned int specularNr = 1;
@@ -40,6 +38,12 @@ void Mesh::Draw(Shader &shader)
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
+}
+
+// render the mesh
+void Mesh::Draw(Shader &shader) 
+{
+    bindTextures(shader);
     
     // draw mesh
     glBindVertexArray(VAO);

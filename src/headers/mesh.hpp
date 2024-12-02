@@ -49,6 +49,7 @@ public:
 
     // render the mesh
     void Draw(Shader &shader);
+    void bindTextures(Shader &shader);
 
 private:
     // render data 

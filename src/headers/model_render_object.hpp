@@ -8,6 +8,7 @@ class ModelRenderObject : public SpatialRenderObject {
     public:
         ModelRenderObject(string const &path, Shader * shader, bool gamma = false);
         ~ModelRenderObject() override;
+        Model * getModel();
 
     private:
         Model mModel;

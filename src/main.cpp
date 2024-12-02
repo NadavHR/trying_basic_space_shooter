@@ -12,8 +12,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
 #include <filesystem>
-#include "headers/renderer.hpp"
 #include "headers/shader.hpp"
+#include "headers/renderer.hpp"
+#include "headers/static_utils.hpp"
 #include "headers/camera.hpp"
 #include "headers/model.hpp"
 #include "headers/model_render_object.hpp"
@@ -21,7 +22,7 @@
 #include "headers/input.hpp"
 #include "headers/crosshair.hpp"
 #include "headers/spaceship.hpp"
-#include "headers/static_utils.hpp"
+
 
 using namespace std;
 
@@ -35,9 +36,6 @@ Crosshair * crosshair;
 bool firstMouse = true;
 
 Spaceship * spaceship;
-float timing::deltaTime = 0;
-float timing::lastFrame = 0;
-Renderer* rendering::renderer = NULL;
 int main()
 {
     // glfw: initialize and configure
@@ -109,6 +107,7 @@ int main()
         InputAction::runChecksAndActions(window);
         spaceship->periodic(timing::deltaTime);
         renderer.render();
+        TimedEffect::allPeriodic();
         crosshair->periodic();
 
         // render

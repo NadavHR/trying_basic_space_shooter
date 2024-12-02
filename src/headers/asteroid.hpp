@@ -3,6 +3,7 @@
 #include "model_render_object.hpp"
 #include "crosshair.hpp"
 #include "static_utils.hpp"
+#include "particle_effect.hpp"
 #include <vector>
 #include <random>
 
