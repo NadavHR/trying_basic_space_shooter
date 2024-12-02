@@ -79,7 +79,6 @@ void Spaceship::periodic(float deltaTimeSec) {
     mshader.use();
     mshader.setTransform("view", mcrosshair.getCam().getViewMatrix());
     mshader.setVec3("viewPos", mcrosshair.getCam().position());
-    mcrosshair.getNormalizedDirection(); // delete this
 
     if (mlastShotSec <= SHOOT_EFFECT_TIME_SEC) {
         mshader.setVec3("light.position",
@@ -96,7 +95,7 @@ void Spaceship::periodic(float deltaTimeSec) {
         glEnable(GL_DEPTH_TEST);
         mlaserModel.setPosition(mlaserModel.getPosition() 
         + ( LASER_SPEED * mlastShotSec * glm::vec3((mlaserModel.getRotationTransform() * glm::vec4(0.0, 0.0, 0.1, 0.0)))));
-        rendering::renderer->renderTarget(mlaserModel); // this makes sure we wont render the laser 
+        rendering::renderer->renderTarget(mlaserModel); 
     } else {
         mshader.setVec3("light.position", DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector());
         mshader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
@@ -106,6 +105,7 @@ void Spaceship::periodic(float deltaTimeSec) {
         mshader.setFloat("light.linear",    0.045f);
         mshader.setFloat("light.quadratic", 0.0032f);
     }
+    Asteroid::allPeriodic(mcrosshair, mmodel.getPosition(), misShooting);
 
     mxInput = 0;
     myInput = 0;

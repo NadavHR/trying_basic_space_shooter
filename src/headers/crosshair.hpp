@@ -22,8 +22,8 @@ class Crosshair {
         void setScreenPos(unsigned int x, unsigned int y);
         glm::uvec2 getScreenPos();
         glm::vec2 getNormalizedScreenCoords();
-        glm::vec3 getNormalizedDirection();
-        glm::vec3 getPlanarDirectionVector();
+        glm::vec3 getNormalizedDirection() const;
+        glm::vec3 getPlanarDirectionVector() const;
         unsigned int getScreenHeight();
         unsigned int getScreenWidth();
         Camera& getCam();

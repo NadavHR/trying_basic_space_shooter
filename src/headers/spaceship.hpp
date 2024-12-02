@@ -7,6 +7,7 @@
 #include "../headers/crosshair.hpp"
 #include "renderer.hpp"
 #include "static_utils.hpp"
+#include "asteroid.hpp"
 
 const float X_BOUND = 1.8, Y_BOUND = 1.3, 
             MAX_VEL = 3.0, AIM_EFFECT_STRENGTH = 10000.0,

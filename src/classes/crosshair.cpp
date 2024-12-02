@@ -18,7 +18,7 @@ void Crosshair::setScreenPos(unsigned int x, unsigned int y) {
 glm::uvec2 Crosshair::getScreenPos() {
     return mscreenPos;
 }
-glm::vec3 Crosshair::getPlanarDirectionVector() {
+glm::vec3 Crosshair::getPlanarDirectionVector() const {
     float screenX = ((float)mscreenPos.x - (float)(mscreenWidth / 2));  // focalLengthX * x / z
     float screenY = ((float)mscreenPos.y - (float)(mscreenHeight / 2)); // focalLengthY * y / z 
     float fovRadiansY = glm::radians(mcam.FovY);
@@ -34,7 +34,7 @@ glm::vec3 Crosshair::getPlanarDirectionVector() {
     return glm::vec3(x, y, 1);
 }
 
-glm::vec3 Crosshair::getNormalizedDirection() {
+glm::vec3 Crosshair::getNormalizedDirection() const {
     glm::vec3 normalizedDirection = getPlanarDirectionVector();
     normalizedDirection *= (1.0/glm::length(normalizedDirection));
     return normalizedDirection;

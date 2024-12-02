@@ -1,5 +1,6 @@
 #ifndef STATIC_UTILS_HPP
 #define STATIC_UTILS_HPP
+
 namespace timing {
     // timing
     extern float deltaTime;
