@@ -40,7 +40,7 @@ bool Asteroid::isHit(const Crosshair& crosshair ) {
 
 void Asteroid::periodic(float deltaTimeSec) {
   mposition += (deltaTime * mvelocity);
-  if (mposition.z <= 0) {
+  if (mposition.z <= -5) {
     delete this;
     return;
   }
