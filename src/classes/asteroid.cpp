@@ -38,15 +38,15 @@ bool Asteroid::isHit(const Crosshair& crosshair ) {
   return glm::length(shotDistance) <= mhitRadius;
 }
 
-void Asteroid::periodic(float deltaTimeSec) {
+bool Asteroid::periodic(float deltaTimeSec) {
   mposition += (deltaTime * mvelocity);
   if (mposition.z <= -5) {
     delete this;
-    return;
+    return false;
   }
   basicModel->setPosition(mposition);
   rendering::renderer->renderTarget(*basicModel);
-
+  return true;
 }
 
 void Asteroid::allPeriodic(const Crosshair& crosshair, const glm::vec3 spaceshipPosition, const bool shooting) {
@@ -60,8 +60,7 @@ void Asteroid::allPeriodic(const Crosshair& crosshair, const glm::vec3 spaceship
 
   glEnable(GL_DEPTH_TEST);
   for (auto asteroid : targets) {
-    asteroid->periodic(deltaTimeSec);
-    if (shooting && asteroid->isHit(crosshair)) {
+    if (asteroid->periodic(deltaTimeSec) && shooting && asteroid->isHit(crosshair)) {
       delete asteroid;
     }
   }

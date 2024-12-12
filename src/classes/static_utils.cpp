@@ -28,5 +28,7 @@ Shader * shaders::safeGetDebrisShader() {
     debrisParticleEffectsShader->setVec3("viewPos", rendering::viewPos);
     debrisParticleEffectsShader->setTransform("view", rendering::view);
     debrisParticleEffectsShader->setProjection(rendering::projection);
+    debrisParticleEffectsShader->setInt("frame", 0);
+    debrisParticleEffectsShader->setVec2("screenSize", glm::vec2(screen::SCR_WIDTH, screen::SCR_HEIGHT));
     return debrisParticleEffectsShader;
 }

@@ -16,4 +16,4 @@ void main()
     vec3 offset = offsets[gl_InstanceID] + position + (speeds[gl_InstanceID] * time);
     gl_Position = projection * view * vec4(aPos + offset, 1.0);
     fColor = aColor;
-}  
+} 

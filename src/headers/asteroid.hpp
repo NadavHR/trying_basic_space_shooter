@@ -19,7 +19,7 @@ class Asteroid {
         glm::vec3 mvelocity = glm::vec3(0.0, 0.0, 0.0);
         glm::vec3 mposition;
         const float mhitRadius;
-        void periodic(float deltaTimeSec);
+        bool periodic(float deltaTimeSec);
     
     public:
         Asteroid(const glm::vec3 spaceshipPosition);
