@@ -26,7 +26,7 @@ Asteroid::~Asteroid(){
   targets.erase(targets.begin() + this->mindex);
 
   ParticleEffect * effect = new ParticleEffect(shaders::safeGetDebrisShader(), 
-          1.0, effectOptions::PARTICLE_COUNT, *(basicModel->getModel())); // i know its not cleared, its fine
+          1.0, effectOptions::PARTICLE_COUNT, *(basicModel->getModel()), false); // i know its not cleared, its fine
   glm::vec3 position = mposition;
   position.z *= -1;
   effect->setPosition(position);

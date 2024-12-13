@@ -10,13 +10,14 @@ class TimedEffect : public SpatialRenderObject {
         size_t mindex;
         float mduration;
         float mcurrentTime;
+        bool mrenderDeferred;
 
     protected:
         void periodic(float deltaTime);
-
+        virtual void renderToScreen();
     
     public:
-     TimedEffect(Shader * shader, float duration);
+     TimedEffect(Shader * shader, float duration, bool renderDeferred = true);
      ~TimedEffect();
      static void allPeriodic();
 

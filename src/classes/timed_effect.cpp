@@ -4,7 +4,8 @@ using namespace timing;
 
 std::vector<TimedEffect*> TimedEffect::effects = std::vector<TimedEffect*>();
 
-TimedEffect::TimedEffect(Shader * shader, float duration) {
+TimedEffect::TimedEffect(Shader * shader, float duration, bool renderDeferred) {
+    mrenderDeferred = renderDeferred;
     mShader = shader;
     mcurrentTime = 0;
     mduration = duration;
@@ -22,7 +23,15 @@ void TimedEffect::periodic(float deltaTime) {
     mShader->setFloat("time", mcurrentTime);
     mShader->setFloat("duration", mduration);
     mShader->setVec3("position", getPosition());
-    rendering::renderer->renderTarget(*this);
+    renderToScreen();
+}
+
+void TimedEffect::renderToScreen() {
+    if (mrenderDeferred) {
+        rendering::renderer->renderTarget(*this);
+    } else { // froward rendering in this case
+         rendering::renderer->renderTargetForward(*this);
+    }
 }
 
 TimedEffect::~TimedEffect() {
@@ -33,6 +42,7 @@ TimedEffect::~TimedEffect() {
 }
 
 void TimedEffect::allPeriodic() {
+    glEnable(GL_DEPTH_TEST);
     for (auto effect : effects) {
         effect->periodic(deltaTime);
     }

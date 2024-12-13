@@ -109,10 +109,8 @@ int main()
         renderer.render();
         TimedEffect::allPeriodic();
         crosshair->periodic();
-
-        // render
-        // ------
         screenRenderer.renderToScreen();
+
         // glBindVertexArray(0); // no need to unbind it every time 
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

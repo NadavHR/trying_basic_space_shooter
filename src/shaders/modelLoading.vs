@@ -5,7 +5,7 @@ layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent; 
 
-out vec2 texCoord;
+out vec2 TexCoords;
 out vec3 normal;
 out vec3 FragPos;
 out mat3 TBN;
@@ -16,7 +16,7 @@ uniform mat4 projection;
 
 void main()
 {
-    texCoord = aTexCoords;    
+    TexCoords = aTexCoords;    
     normal = aNormal;
     FragPos = aPos;
     gl_Position = projection * view * model * vec4(aPos, 1.0);

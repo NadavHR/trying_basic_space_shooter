@@ -1,8 +1,8 @@
 #include "../headers/particle_effect.hpp"
 
 
-ParticleEffect::ParticleEffect(Shader * shader, float duration, size_t count, Model &model) :
-    TimedEffect(shader, duration), mmodel(model) {
+ParticleEffect::ParticleEffect(Shader * shader, float duration, size_t count, Model &model, bool renderDeferred) :
+    TimedEffect(shader, duration, renderDeferred), mmodel(model) {
     mcount = count;
 }
 
@@ -19,7 +19,5 @@ void ParticleEffect::draw() {
         glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(mesh.indices.size()), GL_UNSIGNED_INT, 0, mcount);
         glBindVertexArray(0);
 
-        // always good practice to set everything back to defaults once configured.
-        glActiveTexture(GL_TEXTURE0);
     }
 }

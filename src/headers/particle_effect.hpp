@@ -8,11 +8,11 @@ class ParticleEffect : public TimedEffect {
         Model &mmodel;
 
     protected:
-        // Shader * TimedEffect::mShader;
         void draw() override;
 
+
     public: 
-        ParticleEffect(Shader * shader, float duration, size_t count, Model &model);
+        ParticleEffect(Shader * shader, float duration, size_t count, Model &model, bool renderDeferred = true);
 };
 
 #endif /* PARTICLE_EFFECT_HPP */
