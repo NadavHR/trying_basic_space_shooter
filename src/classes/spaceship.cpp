@@ -20,6 +20,7 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoad
     mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
     mlaserModel.setScale(glm::vec3(2.0, 2.0, 4.0));
     rendering::renderer->addRenderObject(&mmodel);
+    rendering::renderer->addForwardRenderObject(&mlaserModel);
 }
 
 void Spaceship::periodic(float deltaTimeSec) {
@@ -91,7 +92,7 @@ void Spaceship::periodic(float deltaTimeSec) {
         glEnable(GL_DEPTH_TEST);
         mlaserModel.setPosition(mlaserModel.getPosition() 
         + ( LASER_SPEED * mlastShotSec * glm::vec3((mlaserModel.getRotationTransform() * glm::vec4(0.0, 0.0, 0.1, 0.0)))));
-        rendering::renderer->renderTarget(mlaserModel); 
+        // rendering::renderer->renderTarget(mlaserModel); 
     } else {
         mshader.setVec3("light.position", DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector());
         mshader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));

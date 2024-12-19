@@ -13,12 +13,17 @@ static float quadVertices[] = { // vertex attributes for a quad that fills the e
 
 
 Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambientLightShader("shaders/ambientLightDeferred.vs",
-                                                                                            "shaders/ambientLightDeferred.fs")
+                                                                                            "shaders/ambientLightDeferred.fs"),
+                                                                        mtoneMappingShader("shaders/toneMapper.vs", 
+                                                                                           "shaders/toneMapper.fs")
 {
     mFrameWidth = frameWidth;
     mFrameHeight = frameHeight;
     mambientColor = glm::vec3(1,1,1);
-    mambientStrength = 1;
+    mambientStrength = 0.1;
+
+    mgamma = 2.2;
+    mexposure = 1.0;
 
     // generate g buffer frame buffer
     glGenFramebuffers(1, &mgBuffer);
@@ -52,7 +57,7 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
 
-    // - depth buffer RBO
+    // - depth buffer 
     glGenRenderbuffers(1, &mdefferedRBO);
     glBindRenderbuffer(GL_RENDERBUFFER, mdefferedRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
@@ -63,7 +68,7 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
         std::cout << "ERROR: Frame buffer incomplete" << std::endl;
     }
 
-    // generate frame buffer object
+    // generate forward frame buffer object
     glGenFramebuffers(1, &mforwardFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO); 
 
@@ -71,7 +76,7 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     glGenTextures(1, &mTexture);
     glBindTexture(GL_TEXTURE_2D, mTexture);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frameWidth, frameHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
@@ -87,6 +92,36 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
     // attach render buffer to fbo
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mforwardRBO);
+
+    // make sure the frame buffer is complete
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR: Frame buffer incomplete" << std::endl;
+    }
+
+    // generate HDR frame buffer object
+    glGenFramebuffers(1, &mhdrFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO); 
+
+    // generate texture to attach to frame buffer object
+    glGenTextures(1, &mhdrTexture);
+    glBindTexture(GL_TEXTURE_2D, mhdrTexture);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+
+    // attach texture to fbo
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mhdrTexture, 0);
+
+    // generate render buffer object
+    glGenRenderbuffers(1, &mhdrRBO);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, mhdrRBO);  
+
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
+    // attach render buffer to fbo
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mhdrRBO);
 
     // make sure the frame buffer is complete
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -114,10 +149,13 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
 void Renderer::clear() {
     glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, mgBuffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     
 }
 
@@ -134,21 +172,21 @@ void Renderer::render()
     // glBindFramebuffer(GL_READ_FRAMEBUFFER, mgBuffer);
     glDisable(GL_DEPTH_TEST); 
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO);
     mambientLightShader.use();
     unsigned int shaderID = mambientLightShader.getProgramID();
 
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(shaderID, "gNormal"), 0);
-    glBindTexture(GL_TEXTURE_2D, mgNormal);
+    #define SET_TEXTURE(name, i, textureID) \
+    glActiveTexture(GL_TEXTURE##i); \
+    glUniform1i(glGetUniformLocation(shaderID, name), i); \
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glActiveTexture(GL_TEXTURE1);
-    glUniform1i(glGetUniformLocation(shaderID, "gPosition"), 1);
-    glBindTexture(GL_TEXTURE_2D, mgPosition);
-
-    glActiveTexture(GL_TEXTURE2);
-    glUniform1i(glGetUniformLocation(shaderID, "gAlbedoSpec"), 2);
-    glBindTexture(GL_TEXTURE_2D, mgAlbedoSpec);
+    #define BIND_GBUFFER_TEXTURES() \
+    SET_TEXTURE("gNormal", 0, mgNormal) \
+    SET_TEXTURE("gPosition", 1, mgPosition) \
+    SET_TEXTURE("gAlbedoSpec", 2, mgAlbedoSpec)
+    
+    BIND_GBUFFER_TEXTURES()
     // also send light relevant uniforms
     mambientLightShader.setVec3("Ambient", mambientColor);
     mambientLightShader.setFloat("AmbientStrength", mambientStrength);
@@ -158,9 +196,30 @@ void Renderer::render()
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, mgBuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mhdrFBO);
+    glBlitFramebuffer(0, 0, mFrameWidth, mFrameHeight, 0, 0, mFrameWidth, mFrameHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mforwardFBO);
     glBlitFramebuffer(0, 0, mFrameWidth, mFrameHeight, 0, 0, mFrameWidth, mFrameHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     
+    glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO);
+    glEnable(GL_DEPTH_TEST); 
+    for (IRenderObject * object : mforwardRenderObjects) {
+        object->render();
+    }
+    glDisable(GL_DEPTH_TEST); 
+
+    glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
+    glBindVertexArray(mQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+
+    mtoneMappingShader.use();
+    shaderID = mtoneMappingShader.getProgramID();
+    SET_TEXTURE("hdrBuffer", 0, mhdrTexture);
+    mtoneMappingShader.setFloat("exposure", mexposure);
+    mtoneMappingShader.setFloat("gamma", mgamma);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glActiveTexture(GL_TEXTURE0);
@@ -207,4 +266,10 @@ void Renderer::addRenderObject(IRenderObject *object)
 {
     mRenderObjects.push_back(object);
 }
+
+void Renderer::addForwardRenderObject(IRenderObject * object) 
+{
+    mforwardRenderObjects.push_back(object);
+}
+
 
