@@ -3,24 +3,33 @@
 Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoadingShader()),
         mmodel((std::filesystem::absolute("models/spaceship/basic_spaceship.gltf")).generic_string(), shaders::safeGetModelLoadingShader()),
         mcrosshair(crosshair), mlaserShader("shaders/laserBeam.vs", "shaders/laserBeam.fs"), 
-        mlaserModel((std::filesystem::absolute("models/laser/laser.gltf")).generic_string(), &mlaserShader) {
+        mlaserModel((std::filesystem::absolute("models/laser/laser.gltf")).generic_string(), &mlaserShader),
+        maimLight(), mlaserLight() {
     glm::vec3 lightPos(1.0, 1.0, 0.0);
     auto perspective = glm::perspective(glm::radians(crosshair.getCam().FovY),
      (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f);
     rendering::projection = perspective;
     mshader.use();
     mshader.setProjection(perspective);
-    mshader.setVec3("DirectionalLightDirection", glm::vec3(1, -1, 0.5));
-    mshader.setVec3("DirectionalLightDiffuse", glm::vec3(0.2, 0.2, 0.2));
-    mshader.setVec3("DirectionalLightSpecular", glm::vec3(0.2, 0.2, 0.2));
     mlaserShader.use();
     mlaserShader.setProjection(perspective);
     mmodel.setPosition(glm::vec3(0.0, 0.0, 3.0));
     mmodel.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
-    mlaserModel.setScale(glm::vec3(2.0, 2.0, 4.0));
+    mlaserModel.setScale(glm::vec3(2.0, 2.0, 5.0));
     rendering::renderer->addRenderObject(&mmodel);
     rendering::renderer->addForwardRenderObject(&mlaserModel);
+    maimLight.mlightColor = glm::vec3(1.0, 1.0, 0.9);
+    maimLight.mlightLinearIntensity = 0.1;
+    maimLight.mlightQuadraticIntensity = 0.01;
+    mlaserLight.mlightColor = glm::vec3(1.0, 0.1, 0.1);
+    mlaserLight.mlightPosition = mlaserModel.getPosition();
+    mlaserLight.mlightLinearIntensity = 0.07;
+    mlaserLight.mlightQuadraticIntensity = 0.001;
+
+    // rendering::renderer->addLightSource(&maimLight);
+    rendering::renderer->addLightSource(&mlaserLight);
+
 }
 
 void Spaceship::periodic(float deltaTimeSec) {
@@ -78,30 +87,16 @@ void Spaceship::periodic(float deltaTimeSec) {
     rendering::viewPos =  mcrosshair.getCam().position();
 
     if (mlastShotSec <= SHOOT_EFFECT_TIME_SEC) {
-        mshader.setVec3("light.position",
-         (mlastShotSec * LASER_SPEED) * glm::normalize((DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector()) - position));
-        mshader.setVec3("light.ambient", glm::vec3(0.3f, 0.2f, 0.2f));
-        mshader.setVec3("light.diffuse", glm::vec3(1.0f, 0.5f, 0.5f)); // darken diffuse light a bit
-        mshader.setVec3("light.specular",glm::vec3(1.0f, 0.5f, 0.5f)); 
-        mshader.setFloat("light.constant",  0.75f);
-        mshader.setFloat("light.linear",    0.05f);
-        mshader.setFloat("light.quadratic", 0.001f); 
         mlaserShader.use();
         mlaserShader.setTransform("view", mcrosshair.getCam().getViewMatrix());
         mlaserShader.setVec3("viewPos", mcrosshair.getCam().position());
         glEnable(GL_DEPTH_TEST);
-        mlaserModel.setPosition(mlaserModel.getPosition() 
-        + ( LASER_SPEED * mlastShotSec * glm::vec3((mlaserModel.getRotationTransform() * glm::vec4(0.0, 0.0, 0.1, 0.0)))));
         // rendering::renderer->renderTarget(mlaserModel); 
-    } else {
-        mshader.setVec3("light.position", DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector());
-        mshader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-        mshader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f)); // darken diffuse light a bit
-        mshader.setVec3("light.specular",glm::vec3(1.0f, 1.0f, 1.0f)); 
-        mshader.setFloat("light.constant",  0.7f);
-        mshader.setFloat("light.linear",    0.045f);
-        mshader.setFloat("light.quadratic", 0.0032f);
     }
+    maimLight.mlightPosition = DEFAULT_LIGHT_DISTANCE * mcrosshair.getPlanarDirectionVector();
+    mlaserModel.setPosition(mlaserModel.getPosition() 
+        + ( LASER_SPEED * mlastShotSec * glm::vec3((mlaserModel.getRotationTransform() * glm::vec4(0.0, 0.0, 0.1, 0.0)))));
+    mlaserLight.mlightPosition = mlaserModel.getPosition();
     Asteroid::allPeriodic(mcrosshair, mmodel.getPosition(), misShooting);
 
     mxInput = 0;

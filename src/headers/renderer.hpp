@@ -2,6 +2,7 @@
 #define RENDERER_HPP
 #include "irender_object.hpp"
 #include "shader.hpp"
+#include "light_source.hpp"
 #include <vector>
 #include <glad/glad.h>
 
@@ -15,6 +16,7 @@ class Renderer {
         ~Renderer();
         void addRenderObject(IRenderObject * object);
         void addForwardRenderObject(IRenderObject * object);
+        void addLightSource(LightSource * source);
         unsigned int getTexture() const;
         unsigned int getFrameBuffer() const;
         unsigned int getRenderBuffer() const;
@@ -27,6 +29,7 @@ class Renderer {
         unsigned int mFrameWidth, mFrameHeight;
         std::vector<IRenderObject*> mforwardRenderObjects;
         std::vector<IRenderObject*> mRenderObjects;
+        std::vector<LightSource*> mlightSources;
         Shader mambientLightShader;
         Shader mtoneMappingShader;
         unsigned int mTexture;  // the texture being written to

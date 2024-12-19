@@ -1,22 +1,15 @@
 #include "../headers/light_source.hpp"
 
-LightSource::LightSource(LightType lightType)
+Shader * LightSource::pointLightShader = NULL;
+glm::vec3 LightSource::mviewPos = glm::vec3(0.0);
+
+LightSource::LightSource()
 {
-    switch (lightType)
-    {
-    case DIRECTIONAL_LIGHT:
-        if (directionalLightShader == NULL) { // static member values are initialized to NULL by default 
-            directionalLightShader = new Shader("shaders/directionalLight.vs", "shaders/directionalLight.fs"); // this value never needs to be cleared until the end of the program
-        }
-        mshader = directionalLightShader;
-        break;
-    
-    case POINT_LIGHT:
-        if (pointLightShader == NULL) { // static member values are initialized to NULL by default 
-            pointLightShader = new Shader("shaders/pointLight.vs", "shaders/pointLight.fs"); // this value never needs to be cleared until the end of the program
-        }
-        break;
+    if (pointLightShader == NULL) { // static member values are initialized to NULL by default 
+        pointLightShader = new Shader("shaders/pointLight.vs", "shaders/pointLight.fs"); // this value never needs to be cleared until the end of the program
     }
+    mshader = pointLightShader;
+
 }
 
 LightSource::~LightSource()
@@ -25,4 +18,16 @@ LightSource::~LightSource()
 
 void LightSource::use() {
     mshader->use();
+    mshader->setVec3("viewPos", mviewPos);
+    glm::vec3 position = mlightPosition;
+    position.z *= -1;
+    mshader->setVec3("Position", position);
+    mshader->setVec3("Color", mlightColor);
+    mshader->setFloat("quadratic", mlightQuadraticIntensity);
+    mshader->setFloat("linear", mlightLinearIntensity);
+
+}
+
+void LightSource::setViewPos(glm::vec3 viewPos) {
+    mviewPos = viewPos;
 }

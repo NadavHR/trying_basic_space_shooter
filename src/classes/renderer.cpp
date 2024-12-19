@@ -20,7 +20,7 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     mFrameWidth = frameWidth;
     mFrameHeight = frameHeight;
     mambientColor = glm::vec3(1,1,1);
-    mambientStrength = 0.1;
+    mambientStrength = 0.0;
 
     mgamma = 2.2;
     mexposure = 1.0;
@@ -190,10 +190,17 @@ void Renderer::render()
     // also send light relevant uniforms
     mambientLightShader.setVec3("Ambient", mambientColor);
     mambientLightShader.setFloat("AmbientStrength", mambientStrength);
-    
     glBindVertexArray(mQuadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    for (LightSource* light : mlightSources) {
+        light->use();
+        shaderID = light->mshader->getProgramID();
+        BIND_GBUFFER_TEXTURES()
+        SET_TEXTURE("hdrBuffer", 3, mhdrTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, mgBuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mhdrFBO);
@@ -208,9 +215,10 @@ void Renderer::render()
     }
     glDisable(GL_DEPTH_TEST); 
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
     glBindVertexArray(mQuadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
 
     mtoneMappingShader.use();
     shaderID = mtoneMappingShader.getProgramID();
@@ -272,4 +280,6 @@ void Renderer::addForwardRenderObject(IRenderObject * object)
     mforwardRenderObjects.push_back(object);
 }
 
-
+void Renderer::addLightSource(LightSource * lightSource) {
+    mlightSources.push_back(lightSource);
+}
