@@ -20,7 +20,6 @@ void LightSource::use() {
     mshader->use();
     mshader->setVec3("viewPos", mviewPos);
     glm::vec3 position = mlightPosition;
-    position.z *= -1;
     mshader->setVec3("Position", position);
     mshader->setVec3("Color", mlightColor);
     mshader->setFloat("quadratic", mlightQuadraticIntensity);

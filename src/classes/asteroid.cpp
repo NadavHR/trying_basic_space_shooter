@@ -28,19 +28,18 @@ Asteroid::~Asteroid(){
   ParticleEffect * effect = new ParticleEffect(shaders::safeGetDebrisShader(), 
           1.0, effectOptions::PARTICLE_COUNT, *(basicModel->getModel()), false); // i know its not cleared, its fine
   glm::vec3 position = mposition;
-  position.z *= -1;
   effect->setPosition(position);
 }  
 
 bool Asteroid::isHit(const Crosshair& crosshair ) {
-  glm::vec3 laserPosition = crosshair.getPlanarDirectionVector() * mposition.z;
+  glm::vec3 laserPosition = crosshair.getPlanarDirectionVector() * glm::abs(mposition.z);
   glm::vec3 shotDistance = laserPosition - mposition;
   return glm::length(shotDistance) <= mhitRadius;
 }
 
 bool Asteroid::periodic(float deltaTimeSec) {
   mposition += (deltaTime * mvelocity);
-  if (mposition.z <= -5) {
+  if (mposition.z >= MAX_Z) {
     delete this;
     return false;
   }
@@ -51,10 +50,12 @@ bool Asteroid::periodic(float deltaTimeSec) {
 
 void Asteroid::allPeriodic(const Crosshair& crosshair, const glm::vec3 spaceshipPosition, const bool shooting) {
   static float timer = SPAWN_TIME_SEC;
+  static float spawnTime = SPAWN_TIME_SEC;
   float deltaTimeSec = deltaTime;
   timer += deltaTimeSec;
-  if (timer >= SPAWN_TIME_SEC) {
-    timer = fmod(timer, SPAWN_TIME_SEC);
+  if (timer >= spawnTime) {
+    timer = fmod(timer, spawnTime);
+    spawnTime *= SPAWN_TIME_MULTIPLIER;
     Asteroid * newAsteroid = new Asteroid(spaceshipPosition); // lol this is not freed here but dont worry its fine it gets freed 
   }
 

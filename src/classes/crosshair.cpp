@@ -28,10 +28,10 @@ glm::vec3 Crosshair::getPlanarDirectionVector() const {
     focalLengthX = mscreenWidth / focalLengthX;          // z * w / xPlane
 
     // we start by assuming z = 1 -> 
-    // * screenX = focalLengthX * x,  screenY = focalLengthY * y
+    // screenX = focalLengthX * x,  screenY = focalLengthY * y
     float x = screenX / focalLengthX;
     float y = screenY / focalLengthY; 
-    return glm::vec3(x, y, 1);
+    return glm::vec3(x, y, -1);
 }
 
 glm::vec3 Crosshair::getNormalizedDirection() const {

@@ -20,7 +20,7 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     mFrameWidth = frameWidth;
     mFrameHeight = frameHeight;
     mambientColor = glm::vec3(1,1,1);
-    mambientStrength = 0.0;
+    mambientStrength = 0.05;
 
     mgamma = 2.2;
     mexposure = 1.0;

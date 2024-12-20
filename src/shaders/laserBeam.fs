@@ -9,5 +9,5 @@ uniform vec3 viewPos;
 uniform sampler2D texture_diffuse1;
 void main()
 {    
-    FragColor = 100 * texture(texture_diffuse1, texCoord);
+    FragColor = 10 * texture(texture_diffuse1, texCoord);
 }

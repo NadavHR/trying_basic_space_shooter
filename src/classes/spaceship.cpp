@@ -13,7 +13,7 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoad
     mshader.setProjection(perspective);
     mlaserShader.use();
     mlaserShader.setProjection(perspective);
-    mmodel.setPosition(glm::vec3(0.0, 0.0, 3.0));
+    mmodel.setPosition(glm::vec3(0.0, 0.0, -3.0));
     mmodel.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
     mlaserModel.setScale(glm::vec3(2.0, 2.0, 5.0));
@@ -22,12 +22,12 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoad
     maimLight.mlightColor = glm::vec3(1.0, 1.0, 0.9);
     maimLight.mlightLinearIntensity = 0.1;
     maimLight.mlightQuadraticIntensity = 0.01;
-    mlaserLight.mlightColor = glm::vec3(1.0, 0.1, 0.1);
+    mlaserLight.mlightColor = glm::vec3(10.0, 0.1, 0.1);
     mlaserLight.mlightPosition = mlaserModel.getPosition();
-    mlaserLight.mlightLinearIntensity = 0.07;
+    mlaserLight.mlightLinearIntensity = 0.9;
     mlaserLight.mlightQuadraticIntensity = 0.001;
 
-    // rendering::renderer->addLightSource(&maimLight);
+    rendering::renderer->addLightSource(&maimLight);
     rendering::renderer->addLightSource(&mlaserLight);
 
 }
@@ -68,8 +68,8 @@ void Spaceship::periodic(float deltaTimeSec) {
 
     glm::quat quat = glm::lookAt(mmodel.getPosition(), 
         (mcrosshair.getPlanarDirectionVector() * AIM_EFFECT_STRENGTH),
-        glm::vec3(0.0, 1.0, 0.0));
-    glm::vec3 rotVector = glm::vec3(glm::pitch(quat), glm::yaw(quat) - glm::pi<float>(), glm::roll(quat));
+        -glm::vec3(0.0, 1.0, 0.0));
+    glm::vec3 rotVector = glm::vec3(glm::pitch(quat), glm::yaw(quat), glm::roll(quat));
     mmodel.setRotationRad(rotVector);
     mmodel.setPosition(position);
 

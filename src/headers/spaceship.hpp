@@ -13,7 +13,7 @@
 const float X_BOUND = 1.8, Y_BOUND = 1.3, 
             MAX_VEL = 3.0, AIM_EFFECT_STRENGTH = 10000.0,
             SHOOT_COOLDOWN_SEC = 0.18, SHOOT_EFFECT_TIME_SEC = 0.18, // SHOOT_EFFECT_TIME_SEC needs to be smaller or equal to SHOOT_COOLDOWN_SEC for an effect to occure
-            LASER_SPEED = 80.0, DEFAULT_LIGHT_DISTANCE = 1.0;
+            LASER_SPEED = -20.0, DEFAULT_LIGHT_DISTANCE = 5;
 class Spaceship {
     private:
         ModelRenderObject mmodel;

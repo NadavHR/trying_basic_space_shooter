@@ -30,7 +30,7 @@ void main()
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Albedo * Color;
     // specular
     vec3 halfwayDir = normalize(lightDir + viewDir);  
-    float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
+    float spec = pow(max(dot(Normal, halfwayDir), 0.0), 32.0);
     vec3 specular = Color * spec * Specular;
     // attenuation
     float attenuation = 1.0 / (1.0 + linear * distance + quadratic * distance * distance);
@@ -39,4 +39,5 @@ void main()
     vec3 lighting = diffuse + specular;
 
     FragColor = vec4(color + lighting, 1.0);
+    // FragColor = vec4(color, 1.0);
 }  
