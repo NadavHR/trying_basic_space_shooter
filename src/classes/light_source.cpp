@@ -9,7 +9,7 @@ LightSource::LightSource()
         pointLightShader = new Shader("shaders/pointLight.vs", "shaders/pointLight.fs"); // this value never needs to be cleared until the end of the program
     }
     mshader = pointLightShader;
-
+    mlightThreshold = 0.8;
 }
 
 LightSource::~LightSource()
@@ -24,6 +24,7 @@ void LightSource::use() {
     mshader->setVec3("Color", mlightColor);
     mshader->setFloat("quadratic", mlightQuadraticIntensity);
     mshader->setFloat("linear", mlightLinearIntensity);
+    mshader->setFloat("lightThreshold", mlightThreshold);
 
 }
 

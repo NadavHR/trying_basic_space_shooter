@@ -15,35 +15,36 @@ static float quadVertices[] = { // vertex attributes for a quad that fills the e
 Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambientLightShader("shaders/ambientLightDeferred.vs",
                                                                                             "shaders/ambientLightDeferred.fs"),
                                                                         mtoneMappingShader("shaders/toneMapper.vs", 
-                                                                                           "shaders/toneMapper.fs")
+                                                                                           "shaders/toneMapper.fs"),
+                                                                        mblurShader("shaders/gaussBlur.vs", "shaders/gaussBlur.fs")
 {
     mFrameWidth = frameWidth;
     mFrameHeight = frameHeight;
     mambientColor = glm::vec3(1,1,1);
     mambientStrength = 0.05;
+    mbloomAmmount = 5;
 
     mgamma = 2.2;
     mexposure = 1.0;
+
+    #define GEN_HDR_TEXTURE(texture, attachment) \
+    glGenTextures(1, &texture); \
+    glBindTexture(GL_TEXTURE_2D, texture); \
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL); \
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); \
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); \
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT##attachment, GL_TEXTURE_2D, texture, 0);
+
 
     // generate g buffer frame buffer
     glGenFramebuffers(1, &mgBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, mgBuffer);
 
     // - normal color buffer
-    glGenTextures(1, &mgNormal);
-    glBindTexture(GL_TEXTURE_2D, mgNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mgNormal, 0);
+    GEN_HDR_TEXTURE(mgNormal, 0)
 
     // - position color buffer
-    glGenTextures(1, &mgPosition);
-    glBindTexture(GL_TEXTURE_2D, mgPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mgPosition, 0);
+    GEN_HDR_TEXTURE(mgPosition, 1)
     
     // - color + specular color buffer
     glGenTextures(1, &mgAlbedoSpec);
@@ -54,8 +55,8 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mgAlbedoSpec, 0);
     
     // - tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+    unsigned int attachmentsG[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachmentsG);
 
     // - depth buffer 
     glGenRenderbuffers(1, &mdefferedRBO);
@@ -103,16 +104,12 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO); 
 
     // generate texture to attach to frame buffer object
-    glGenTextures(1, &mhdrTexture);
-    glBindTexture(GL_TEXTURE_2D, mhdrTexture);
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    GEN_HDR_TEXTURE(mhdrTexture, 0)
+    GEN_HDR_TEXTURE(mbrightTexture, 1)
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-
-    // attach texture to fbo
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mhdrTexture, 0);
+    // - tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+    unsigned int attachmentsHDR[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachmentsHDR);
 
     // generate render buffer object
     glGenRenderbuffers(1, &mhdrRBO);
@@ -122,6 +119,29 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
     // attach render buffer to fbo
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mhdrRBO);
+
+    // make sure the frame buffer is complete
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR: Frame buffer incomplete" << std::endl;
+    }
+
+    glGenFramebuffers(2, mpingpongFBO);
+    glGenTextures(2, mpingpongBuffer);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, mpingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, mpingpongBuffer[i]);
+        glTexImage2D(
+            GL_TEXTURE_2D, 0, GL_RGBA16F, frameWidth, frameHeight, 0, GL_RGBA, GL_FLOAT, NULL
+        );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mpingpongBuffer[i], 0
+        );
+    }
 
     // make sure the frame buffer is complete
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -155,8 +175,6 @@ void Renderer::clear() {
     glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    
 }
 
 void Renderer::render()
@@ -199,6 +217,7 @@ void Renderer::render()
         shaderID = light->mshader->getProgramID();
         BIND_GBUFFER_TEXTURES()
         SET_TEXTURE("hdrBuffer", 3, mhdrTexture);
+        SET_TEXTURE("brightBuffer", 4, mbrightTexture)
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
@@ -217,16 +236,30 @@ void Renderer::render()
 
     glBindVertexArray(mQuadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+    bool horizontal = true, first_iteration = true;
+    mblurShader.use();
+    for (unsigned int i = 0; i < 2 * mbloomAmmount; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, mpingpongFBO[horizontal]); 
+        mblurShader.setInt("horizontal", horizontal);
+        glBindTexture(
+            GL_TEXTURE_2D, first_iteration ? mbrightTexture : mpingpongBuffer[!horizontal]
+        ); 
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        horizontal = !horizontal;
+        if (first_iteration)
+            first_iteration = false;
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
 
     mtoneMappingShader.use();
     shaderID = mtoneMappingShader.getProgramID();
     SET_TEXTURE("hdrBuffer", 0, mhdrTexture);
+    SET_TEXTURE("bloomBuffer", 1, mpingpongBuffer[1]);
     mtoneMappingShader.setFloat("exposure", mexposure);
     mtoneMappingShader.setFloat("gamma", mgamma);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -264,9 +297,19 @@ Renderer::~Renderer()
     glDeleteVertexArrays(1, &mQuadVAO);
     unsigned int textures[] = {mgAlbedoSpec, mgPosition, mgNormal};
     glDeleteTextures(3, textures);
+    glDeleteRenderbuffers(1, &mdefferedRBO);
+    glDeleteFramebuffers(1, &mgBuffer);
+
     glDeleteFramebuffers(1, &mforwardFBO);  
     glDeleteRenderbuffers(1, &mforwardRBO);
-    glDeleteRenderbuffers(1, &mdefferedRBO);
+    glDeleteTextures(1, &mTexture);
+
+    glDeleteFramebuffers(1, &mhdrFBO);
+    glDeleteRenderbuffers(1, &mhdrRBO);
+    glDeleteTextures(1, &mhdrTexture);
+
+    glDeleteFramebuffers(2, mpingpongFBO);
+    glDeleteBuffers(2, mpingpongBuffer);
 
 }
 

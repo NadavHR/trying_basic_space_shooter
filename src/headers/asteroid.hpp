@@ -7,7 +7,7 @@
 #include <vector>
 #include <random>
 
-const float INITIAL_SPEED = 30, SPEED_MULTIPLIER = 1.03, SPAWN_TIME_MULTIPLIER = 0.98,
+const float INITIAL_SPEED = 30, SPEED_MULTIPLIER = 1.02, SPAWN_TIME_MULTIPLIER = 0.99,
      DEFAULT_HIT_RADIUS = 2.7, DEFAULT_DISTANCE = -150.0, SPAWN_TIME_SEC = 1.5,
      X_RANGE = 36, Y_RANGE = 25.5, MAX_Z = 5; // we use max z instead of min bc z is reversed
 class Asteroid {

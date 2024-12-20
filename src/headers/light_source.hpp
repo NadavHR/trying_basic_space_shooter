@@ -14,6 +14,7 @@ public:
     glm::vec3 mlightColor;
     float mlightLinearIntensity;
     float mlightQuadraticIntensity;
+    float mlightThreshold;
     static void setViewPos(glm::vec3 viewPos);
     void use();
     LightSource();

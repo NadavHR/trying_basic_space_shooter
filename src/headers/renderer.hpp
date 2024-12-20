@@ -32,17 +32,26 @@ class Renderer {
         std::vector<LightSource*> mlightSources;
         Shader mambientLightShader;
         Shader mtoneMappingShader;
-        unsigned int mTexture;  // the texture being written to
+        Shader mblurShader;
+        unsigned int mbloomAmmount;
+
+        unsigned int mTexture;  // the final texture being written to
         unsigned int mforwardFBO;  // Frame Buffer Object
         unsigned int mforwardRBO;  // Render Buffer Object
+
+        unsigned int mpingpongFBO[2];  // FBO for ping pong buffers
+        unsigned int mpingpongBuffer[2]; // buffers of ping pong buffers
+
         unsigned int mhdrTexture;  // the hdr texture being written to
+        unsigned int mbrightTexture; // the texture with all really bright pixels
         unsigned int mhdrFBO;  // Frame Buffer Object for hdr
         unsigned int mhdrRBO;  // Render Buffer Object for hdr
+
         unsigned int mgBuffer; // the g buffer
         unsigned int mgPosition, mgNormal, mgAlbedoSpec; // deferred rendering buffers 
-        unsigned int mQuadVAO, mQuadVBO;  // VAO and VBO for rendering final effects to screen
         unsigned int mdefferedRBO;  // the RBO of the deferred rendering
 
+        unsigned int mQuadVAO, mQuadVBO;  // VAO and VBO for rendering final effects to screen 
         
 };
 

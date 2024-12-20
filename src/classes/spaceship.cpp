@@ -5,23 +5,28 @@ Spaceship::Spaceship(Crosshair & crosshair) : mshader(*shaders::safeGetModelLoad
         mcrosshair(crosshair), mlaserShader("shaders/laserBeam.vs", "shaders/laserBeam.fs"), 
         mlaserModel((std::filesystem::absolute("models/laser/laser.gltf")).generic_string(), &mlaserShader),
         maimLight(), mlaserLight() {
-    glm::vec3 lightPos(1.0, 1.0, 0.0);
     auto perspective = glm::perspective(glm::radians(crosshair.getCam().FovY),
      (float)crosshair.getScreenWidth() / (float)crosshair.getScreenHeight(), 0.1f, 100.0f);
     rendering::projection = perspective;
+    
     mshader.use();
     mshader.setProjection(perspective);
     mlaserShader.use();
     mlaserShader.setProjection(perspective);
+
     mmodel.setPosition(glm::vec3(0.0, 0.0, -3.0));
     mmodel.setRotationRad(glm::vec3(glm::radians(0.0), 0.0f, 0.0f));
     mmodel.setScale(glm::vec3(1.0, 1.0, 1.0));
+
     mlaserModel.setScale(glm::vec3(2.0, 2.0, 5.0));
+
     rendering::renderer->addRenderObject(&mmodel);
     rendering::renderer->addForwardRenderObject(&mlaserModel);
+
     maimLight.mlightColor = glm::vec3(1.0, 1.0, 0.9);
     maimLight.mlightLinearIntensity = 0.1;
     maimLight.mlightQuadraticIntensity = 0.01;
+
     mlaserLight.mlightColor = glm::vec3(10.0, 0.1, 0.1);
     mlaserLight.mlightPosition = mlaserModel.getPosition();
     mlaserLight.mlightLinearIntensity = 0.9;

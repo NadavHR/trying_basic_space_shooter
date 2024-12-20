@@ -103,6 +103,7 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         timing::deltaTime = currentFrame - timing::lastFrame;
         timing::lastFrame = currentFrame;
+        // cout << 1/timing::deltaTime << endl;
         
         InputAction::runChecksAndActions(window);
         spaceship->periodic(timing::deltaTime);
