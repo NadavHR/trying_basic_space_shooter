@@ -8,6 +8,7 @@ ParticleEffect::ParticleEffect(Shader * shader, float duration, size_t count, Mo
 
 
 void ParticleEffect::draw() {
+    glDepthMask(GL_FALSE);  
     for (auto mesh : mmodel.meshes) {
         mesh.bindTextures(*mShader);
 
@@ -20,4 +21,5 @@ void ParticleEffect::draw() {
         glBindVertexArray(0);
 
     }
+    glDepthMask(GL_TRUE);  
 }

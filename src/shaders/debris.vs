@@ -8,8 +8,8 @@ uniform float time;
 uniform vec3 position;
 uniform mat4 view;
 uniform mat4 projection;
-uniform vec3 offsets[100];
-uniform vec3 speeds[100];
+uniform vec3 offsets[50];
+uniform vec3 speeds[50];
 
 void main()
 {

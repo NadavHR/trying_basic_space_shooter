@@ -8,8 +8,7 @@ uniform vec2 screenSize;
 
 void main()
 {
+    vec3 backgroundColor = texture(frame, gl_FragCoord.xy / screenSize).rgb;
     float effectScalar = (duration - time) / duration;
-    // FragColor = vec4(gl_FragCoord.xy / screenSize, 0.0, 1.0);
-    FragColor = vec4((fColor * effectScalar) + (texture(frame, gl_FragCoord.xy / screenSize).rgb * (1-effectScalar)), 1.0);
-    // FragColor = vec4(1 - (texture(frame, framePos).rgb), 1.0);
+    FragColor = vec4((fColor * effectScalar) + (backgroundColor * (1-effectScalar)), 1.0);
 }

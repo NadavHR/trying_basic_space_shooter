@@ -1,5 +1,15 @@
 #include "../headers/renderer.hpp"
 
+#define SET_TEXTURE(name, i, textureID) \
+glActiveTexture(GL_TEXTURE##i); \
+glUniform1i(glGetUniformLocation(shaderID, name), i); \
+glBindTexture(GL_TEXTURE_2D, textureID);
+
+#define BIND_GBUFFER_TEXTURES() \
+SET_TEXTURE("gNormal", 0, mgNormal) \
+SET_TEXTURE("gPosition", 1, mgPosition) \
+SET_TEXTURE("gAlbedoSpec", 2, mgAlbedoSpec)
+
 static float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
     // positions   // texCoords
     -1.0f,  1.0f,  0.0f, 1.0f,
@@ -76,24 +86,43 @@ Renderer::Renderer(unsigned int frameWidth, unsigned int frameHeight) : mambient
     // generate texture to attach to frame buffer object
     glGenTextures(1, &mTexture);
     glBindTexture(GL_TEXTURE_2D, mTexture);
-    
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-
     // attach texture to fbo
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture, 0);
 
     // generate render buffer object
     glGenRenderbuffers(1, &mforwardRBO);
-
     glBindRenderbuffer(GL_RENDERBUFFER, mforwardRBO);  
-
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
     // attach render buffer to fbo
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mforwardRBO);
 
+    // make sure the frame buffer is complete
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR: Frame buffer incomplete" << std::endl;
+    }
+
+    // generate general use frame buffer object
+    glGenFramebuffers(1, &mgeneralUseFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, mgeneralUseFBO); 
+
+    // generate texture to attach to frame buffer object
+    glGenTextures(1, &mgeneralUseTexture);
+    glBindTexture(GL_TEXTURE_2D, mgeneralUseTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frameWidth, frameHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+    // attach texture to fbo
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mgeneralUseTexture, 0);
+
+    // generate render buffer object
+    glGenRenderbuffers(1, &mgeneralUseRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, mgeneralUseRBO);  
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, frameWidth, frameHeight);
+    // attach render buffer to fbo
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mgeneralUseRBO);
     // make sure the frame buffer is complete
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "ERROR: Frame buffer incomplete" << std::endl;
@@ -177,8 +206,7 @@ void Renderer::clear() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::render()
-{
+void Renderer::drawDeffered() {
     glBindFramebuffer(GL_FRAMEBUFFER, mgBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, mdefferedRBO);
     // render
@@ -188,22 +216,15 @@ void Renderer::render()
         object->render();
     }
     // glBindFramebuffer(GL_READ_FRAMEBUFFER, mgBuffer);
-    glDisable(GL_DEPTH_TEST); 
 
+}
+
+void Renderer::applyLight() {
+    glDisable(GL_DEPTH_TEST); 
     glBindFramebuffer(GL_FRAMEBUFFER, mhdrFBO);
     mambientLightShader.use();
     unsigned int shaderID = mambientLightShader.getProgramID();
 
-    #define SET_TEXTURE(name, i, textureID) \
-    glActiveTexture(GL_TEXTURE##i); \
-    glUniform1i(glGetUniformLocation(shaderID, name), i); \
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    #define BIND_GBUFFER_TEXTURES() \
-    SET_TEXTURE("gNormal", 0, mgNormal) \
-    SET_TEXTURE("gPosition", 1, mgPosition) \
-    SET_TEXTURE("gAlbedoSpec", 2, mgAlbedoSpec)
-    
     BIND_GBUFFER_TEXTURES()
     // also send light relevant uniforms
     mambientLightShader.setVec3("Ambient", mambientColor);
@@ -221,6 +242,9 @@ void Renderer::render()
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
+}
+
+void Renderer::DrawForward() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, mgBuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mhdrFBO);
     glBlitFramebuffer(0, 0, mFrameWidth, mFrameHeight, 0, 0, mFrameWidth, mFrameHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -233,7 +257,18 @@ void Renderer::render()
         object->render();
     }
     glDisable(GL_DEPTH_TEST); 
+}
 
+void Renderer::render()
+{
+    drawDeffered();
+
+    applyLight();
+
+    DrawForward();
+
+
+    // apply bloom
     glBindVertexArray(mQuadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
     bool horizontal = true, first_iteration = true;
@@ -254,7 +289,7 @@ void Renderer::render()
     glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
 
     mtoneMappingShader.use();
-    shaderID = mtoneMappingShader.getProgramID();
+    unsigned int shaderID = mtoneMappingShader.getProgramID();
     SET_TEXTURE("hdrBuffer", 0, mhdrTexture);
     SET_TEXTURE("bloomBuffer", 1, mpingpongBuffer[1]);
     mtoneMappingShader.setFloat("exposure", mexposure);
@@ -275,11 +310,20 @@ void Renderer::renderTarget(IRenderObject &target) {
 }
 
 void Renderer::renderTargetForward(IRenderObject &target) {
-    glBindFramebuffer(GL_FRAMEBUFFER, mforwardFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, mforwardFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mgeneralUseFBO);
+    glBlitFramebuffer(0, 0, mFrameWidth, mFrameHeight, 0, 0, mFrameWidth, mFrameHeight, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, mgeneralUseFBO);
     // render
     // -----
     target.render();
-
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mforwardFBO);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, mgeneralUseFBO);
+    glBlitFramebuffer(0, 0, mFrameWidth, mFrameHeight, 0, 0, mFrameWidth, mFrameHeight, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    GLenum err = glGetError();
+    if(err == GL_INVALID_OPERATION ) {
+        std::cout << "ERROR: invalid operation" << std::endl;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 unsigned int Renderer::getTexture() const {
@@ -303,6 +347,10 @@ Renderer::~Renderer()
     glDeleteFramebuffers(1, &mforwardFBO);  
     glDeleteRenderbuffers(1, &mforwardRBO);
     glDeleteTextures(1, &mTexture);
+
+    glDeleteFramebuffers(1, &mgeneralUseFBO);  
+    glDeleteRenderbuffers(1, &mgeneralUseRBO);
+    glDeleteTextures(1, &mgeneralUseTexture);
 
     glDeleteFramebuffers(1, &mhdrFBO);
     glDeleteRenderbuffers(1, &mhdrRBO);

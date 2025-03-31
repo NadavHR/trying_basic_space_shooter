@@ -30,7 +30,7 @@ namespace shaders {
 }
 
 namespace effectOptions {
-    const unsigned int PARTICLE_COUNT = 100; 
+    const unsigned int PARTICLE_COUNT = 50; 
 }
 
 #endif /* STATIC_UTILS_HPP */

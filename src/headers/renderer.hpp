@@ -17,6 +17,9 @@ class Renderer {
         void addRenderObject(IRenderObject * object);
         void addForwardRenderObject(IRenderObject * object);
         void addLightSource(LightSource * source);
+        void drawDeffered(); 
+        void applyLight();
+        void DrawForward();
         unsigned int getTexture() const;
         unsigned int getFrameBuffer() const;
         unsigned int getRenderBuffer() const;
@@ -38,6 +41,10 @@ class Renderer {
         unsigned int mTexture;  // the final texture being written to
         unsigned int mforwardFBO;  // Frame Buffer Object
         unsigned int mforwardRBO;  // Render Buffer Object
+
+        unsigned int mgeneralUseFBO;  // Frame Buffer Object
+        unsigned int mgeneralUseRBO;  // Render Buffer Object
+        unsigned int mgeneralUseTexture; // the texture of the general use buffer
 
         unsigned int mpingpongFBO[2];  // FBO for ping pong buffers
         unsigned int mpingpongBuffer[2]; // buffers of ping pong buffers
