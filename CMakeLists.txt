@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_BUILD_TYPE Debug)
-
 project(trying_space_shooter)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-
 
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -33,6 +29,17 @@ target_link_libraries(trying_space_shooter PRIVATE assimp::assimp)
 target_include_directories(trying_space_shooter PUBLIC "src/" "src/headers/" "src/classes/")
 
 
+add_custom_command(
+        TARGET trying_space_shooter POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/src/models/
+                ${CMAKE_CURRENT_BINARY_DIR}/models/)
+add_custom_command(
+    TARGET trying_space_shooter POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/src/shaders/
+            ${CMAKE_CURRENT_BINARY_DIR}/shaders/)
+                
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 

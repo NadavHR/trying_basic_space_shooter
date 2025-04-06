@@ -1,6 +1,6 @@
 #include "../headers/crosshair.hpp"
 
-Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam), mcrosshairShader("shaders/crosshair.vs", "shaders/crosshair.fs"),
+Crosshair::Crosshair(unsigned int screenWidth, unsigned int screenHeight, Camera& cam) : mcam(cam), mcrosshairShader("./shaders/crosshair.vs", "./shaders/crosshair.fs"),
     mscreenRenderer(rendering::renderer, &mcrosshairShader) {
     mscreenWidth = screenWidth;
     mscreenHeight = screenHeight;
